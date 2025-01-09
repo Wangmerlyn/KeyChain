@@ -171,5 +171,8 @@ cython_debug/
 .pypirc
 
 hotpotqa/
+musique/
 *.jsonl
 *.json
+*.zip
+data/

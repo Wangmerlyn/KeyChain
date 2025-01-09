@@ -117,9 +117,41 @@ def read_hotpotqa(file):
     return total_qas, total_docs
 
 
+def read_musqiue(file):
+    with open(file) as f:
+        # read jsonl file
+        data = [json.loads(line) for line in f]
+    total_docs = []
+    for d in data:
+        for p in d["paragraphs"]:
+            total_docs.append(f"{p['title']}\n{p['paragraph_text']}")
+    print(len(total_docs))
+    total_docs = sorted(list(set(total_docs)))
+    total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}
+    total_qas = []
+    for d in data:
+        # This only deals with questions that are answerable given the context
+        if d["answerable"]:
+            total_qas.append(
+                {
+                    "query": d["question"],
+                    "outputs": [d["answer"]],
+                    "context": [
+                        total_docs_dict[f"{p['title']}\n{p['paragraph_text']}"]
+                        for p in d["paragraphs"]
+                    ],
+                }
+            )
+
+    return total_qas, total_docs
+
+
 DOCUMENT_PROMPT = "Passage {i}:\n{document}"
 if "hotpot" in args.dataset:
     QAS, DOCS = read_hotpotqa(args.dataset)
+elif "musique" in args.dataset:
+    print("Reading MusiqueQA dataset")
+    QAS, DOCS = read_musqiue(args.dataset)
 else:
     raise NotImplementedError(f"{args.dataset} is not implemented.")
 
@@ -130,7 +162,11 @@ def generate_input_output(index, num_docs):
     curr_docs = QAS[index]["context"]
     curr_more = QAS[index].get("more_context", [])
     if num_docs < len(DOCS):
-        if (num_docs - len(curr_docs)) > len(curr_more):
+        # If we have more documents than the number of documents we want to use
+        if len(curr_docs) > num_docs:
+            all_docs = random.sample(curr_docs, num_docs)
+
+        elif (num_docs - len(curr_docs)) > len(curr_more):
             addition_docs = [
                 i for i, d in enumerate(DOCS) if i not in curr_docs + curr_more
             ]
