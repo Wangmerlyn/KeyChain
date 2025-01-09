@@ -146,12 +146,37 @@ def read_musqiue(file):
     return total_qas, total_docs
 
 
+def read_2wikimqa(file):
+    with open(file) as f:
+        data = json.load(f)
+
+    total_docs = [f"{t}\n{''.join(p)}" for d in data for t, p in d["context"]]
+    total_docs = sorted(list(set(total_docs)))
+    total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}
+
+    total_qas = []
+    for d in data:
+        total_qas.append(
+            {
+                "query": d["question"],
+                "outputs": [d["answer"]],
+                "context": [
+                    total_docs_dict[f"{t}\n{''.join(p)}"] for t, p in d["context"]
+                ],
+            }
+        )
+
+    return total_qas, total_docs
+
+
 DOCUMENT_PROMPT = "Passage {i}:\n{document}"
 if "hotpot" in args.dataset:
     QAS, DOCS = read_hotpotqa(args.dataset)
 elif "musique" in args.dataset:
     print("Reading MusiqueQA dataset")
     QAS, DOCS = read_musqiue(args.dataset)
+elif "2wikimqa" in args.dataset:
+    QAS, DOCS = read_2wikimqa(args.dataset)
 else:
     raise NotImplementedError(f"{args.dataset} is not implemented.")
 

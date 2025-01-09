@@ -172,6 +172,7 @@ cython_debug/
 
 hotpotqa/
 musique/
+2wikimqa/
 *.jsonl
 *.json
 *.zip

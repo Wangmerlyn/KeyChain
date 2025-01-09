@@ -1,41 +1,70 @@
 #!/bin/bash
-# wget http://curtis.ml.cmu.edu/datasets/hotpot/hotpot_train_v1.1.json
+# Toggle variables to control whether to download specific datasets
+DOWNLOAD_HOTPOTQA=false
+DOWNLOAD_MUSIQUE=false
+DOWNLOAD_2WIKIMQA=false
 
-# download musique
-# ===============================================
+# Dataset and save name selection
+DATASET_CHOICE="hotpotqa"  # Options: "hotpotqa", "musique", "2wikimqa"
 
-# set -e
-# set -x
+# Dataset download section
+if [ "$DOWNLOAD_HOTPOTQA" = true ]; then
+    echo "Downloading HotpotQA dataset..."
+    wget -q http://curtis.ml.cmu.edu/datasets/hotpot/hotpot_train_v1.1.json
+fi
 
-# # If gdown doesn't work, you can download files from mentioned URLs manually
-# # and put them at appropriate locations.
-# pip install gdown
+if [ "$DOWNLOAD_MUSIQUE" = true ]; then
+    echo "Downloading Musique dataset..."
+    pip install -q gdown
+    ZIP_NAME="musique_v1.0.zip"
+    # Use gdown to download the dataset from Google Drive
+    gdown --id 1tGdADlNjWFaHLeZZGShh2IRcpO6Lv24h --output $ZIP_NAME
+    unzip -q $(basename $ZIP_NAME)  # Unzip the downloaded file
+    rm $ZIP_NAME                   # Remove the zip file after extraction
+    rm -rf __MACOSX                # Clean up unwanted directories
+fi
 
-# ZIP_NAME="musique_v1.0.zip"
+if [ "$DOWNLOAD_2WIKIMQA" = true ]; then
+    echo "Downloading 2WikiMQA dataset..."
+    wget -q -O 2wikimqa.zip https://www.dropbox.com/scl/fi/32t7pv1dyf3o2pp0dl25u/data_ids_april7.zip?rlkey=u868q6h0jojw4djjg7ea65j46&e=1
+    unzip -q 2wikimqa.zip -d 2wikimqa  # Extract the dataset to the specified folder
+    rm 2wikimqa.zip                   # Remove the zip file after extraction
+fi
 
-# # URL: https://drive.google.com/file/d/1tGdADlNjWFaHLeZZGShh2IRcpO6Lv24h/view?usp=sharing
-# gdown --id 1tGdADlNjWFaHLeZZGShh2IRcpO6Lv24h --output $ZIP_NAME
-# unzip $(basename $ZIP_NAME)
-# rm $ZIP_NAME
-
-# # TODO: prevent these from zipping in.
-# rm -rf __MACOSX
-
-# Running arguments
-# ===============================================
-
+# Set parameters based on dataset choice
 SAVE_DIR="./"
-# SAVE_NAME="hotpotqa"
-SAVE_NAME="musique"
+
+case "$DATASET_CHOICE" in
+    "hotpotqa")
+        SAVE_NAME="hotpotqa"
+        DATASET="hotpot_train_v1.1.json"
+        ;;
+    "musique")
+        SAVE_NAME="musique"
+        DATASET="data/musique_full_v1.0_train.jsonl"
+        ;;
+    "2wikimqa")
+        SAVE_NAME="2wikimqa"
+        DATASET="2wikimqa/train.json"
+        ;;
+    *)
+        # Handle invalid dataset selection
+        echo "Invalid DATASET_CHOICE. Please select 'hotpotqa', 'musique', or '2wikimqa'."
+        exit 1
+        ;;
+esac
+
+# Model execution parameters
 TOKENIZER_PATH="/mnt/longcontext/models/siyuan/llama3/llama-3.1-8B-instruct"
 TOKENIZER_TYPE="hf"
 MAX_SEQ_LENGTH=131072
 TOKENS_TO_GENERATE=128
 NUM_SAMPLES=100
 TEMPLATE="{context}"
-# DATASET="hotpot_train_v1.1.json"
-DATASET="data/musique_full_v1.0_train.jsonl"
 
+echo "Running Dataset synthesis with dataset: $DATASET"
+
+# Execute the Python script with the specified parameters
 python qa.py \
     --save_dir=${SAVE_DIR} \
     --save_name=${SAVE_NAME} \
