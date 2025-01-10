@@ -106,7 +106,12 @@ def read_hotpotqa(file):
     for d in data:
         context = [total_docs_dict[f"{t}\n{''.join(p)}"] for t, p in d["context"]]
         per_qa_total_docs = [f"{t}\n{''.join(p)}" for t, p in d["context"]]
-        supporting_facts = [total_docs_dict[c] for c in per_qa_total_docs for s in d['supporting_facts'] if s[0] in c]
+        supporting_facts = [
+            total_docs_dict[c]
+            for c in per_qa_total_docs
+            for s in d["supporting_facts"]
+            if s[0] in c
+        ]
         total_qas.append(
             {
                 "query": d["question"],
@@ -115,7 +120,7 @@ def read_hotpotqa(file):
                 "supporting_facts": supporting_facts,
             }
         )
-        assert len(supporting_facts) > 0, "No supporting facts found."       
+        assert len(supporting_facts) > 0, "No supporting facts found."
 
     return total_qas, total_docs
 
@@ -131,10 +136,15 @@ def read_musqiue(file):
     print(len(total_docs))
     total_docs = sorted(list(set(total_docs)))
     total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}
+
     total_qas = []
     for d in data:
         # This only deals with questions that are answerable given the context
         if d["answerable"]:
+            per_qa_total_docs = {
+                p["idx"]: f"{p['title']}\n{p['paragraph_text']}"
+                for p in (d["paragraphs"])
+            }
             total_qas.append(
                 {
                     "query": d["question"],
@@ -143,6 +153,10 @@ def read_musqiue(file):
                         total_docs_dict[f"{p['title']}\n{p['paragraph_text']}"]
                         for p in d["paragraphs"]
                     ],
+                    "supporting_facts": [
+                        total_docs_dict[per_qa_total_docs[s["paragraph_support_idx"]]]
+                        for s in d["question_decomposition"]
+                    ],
                 }
             )
 
@@ -150,6 +164,7 @@ def read_musqiue(file):
 
 
 def read_2wikimqa(file):
+
     with open(file) as f:
         data = json.load(f)
 
@@ -159,18 +174,25 @@ def read_2wikimqa(file):
 
     total_qas = []
     for d in data:
+        context = [total_docs_dict[f"{t}\n{''.join(p)}"] for t, p in d["context"]]
+        per_qa_total_docs = [f"{t}\n{''.join(p)}" for t, p in d["context"]]
+        supporting_facts = [
+            total_docs_dict[c]
+            for c in per_qa_total_docs
+            for s in d["supporting_facts"]
+            if s[0] in c
+        ]
         total_qas.append(
             {
                 "query": d["question"],
                 "outputs": [d["answer"]],
-                "context": [
-                    total_docs_dict[f"{t}\n{''.join(p)}"] for t, p in d["context"]
-                ],
+                "context": context,
+                "supporting_facts": supporting_facts,
             }
         )
+        assert len(supporting_facts) > 0, "No supporting facts found."
 
     return total_qas, total_docs
-
 
 DOCUMENT_PROMPT = "Passage {i}:\n{document}"
 if "hotpot" in args.dataset:
@@ -184,7 +206,9 @@ else:
     raise NotImplementedError(f"{args.dataset} is not implemented.")
 
 
-def generate_input_output(index,):
+def generate_input_output(
+    index,
+):
     curr_q = QAS[index]["query"]
     curr_a = QAS[index]["outputs"]
     curr_docs = QAS[index]["context"]
