@@ -1,3 +1,4 @@
+import argparse
 import json
 import asyncio
 import re
@@ -128,16 +129,40 @@ async def generate_inference(input_data):
 
 def save_results(file_path, results):
     """Save reasoning results to a file"""
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(results, f, ensure_ascii=False, indent=4)
+    if file_path.endswith(".jsonl"):
+        with open(file_path, "w", encoding="utf-8") as f:
+            for item in results:
+                f.write(json.dumps(item) + "\n")
+    elif: file_path.endswith(".json"):
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(results, f)
+    else:
+        raise ValueError(f"Unsupported file format: {file_path}")
 
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Generate reasoning process for question-answer pairs"
+    )
+    parser.add_argument("--input_file", type=str, required=True, help="Input file path")
+    parser.add_argument(
+        "--output_file", type=str, required=True, help="Output file path"
+    )
+    parser.add_argument(
+        "--prompt_template_type", type=str, default="basic", help="Prompt template type"
+    )
+    return parser.parse_args()
+
+prompt_template_dict = {
+    "basic": "Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nProvide a detailed reasoning process to arrive at the answer based on the given context.",
+}
 
 if __name__ == "__main__":
     # Read input data
-    input_file = "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/hotpotqa/relevant.jsonl"  # Input file path
-    output_file = "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/hotpotqa/relevant_answer.jsonl"  # Output file path
-
-    input_data = read_data(input_file)[:10]
+    args = parse_args()
+    input_file = args.input_file
+    output_file = args.output_file
+    prompt_template = prompt_template_dict[args.prompt_template_type]
+    input_data = read_data(input_file)
 
     # Generate reasoning process asynchronously
     results = asyncio.run(generate_inference(input_data))
