@@ -159,7 +159,7 @@ def parse_args():
 prompt_template_dict = {
     "basic": "Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nProvide a detailed reasoning process to arrive at the answer based on the given context.",
     "normal": 'Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease produce a clear and logically sound explanation that shows how the answer is derived from the context. Finally, present your final conclusion after "Final answer:".',
-    "cot": ' Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease produce a step-by-step reasoning that uncovers the path from the context to the final answer. Clearly demonstrate each inference or sub-action in your explanation. Finally, present your final conclusion after "Final answer:"',
+    "cot": 'Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease produce a step-by-step reasoning that uncovers the path from the context to the final answer. Clearly demonstrate each inference or sub-action in your explanation. Finally, present your final conclusion after "Final answer:"',
     "cot-cite": 'Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease produce a structured, step-by-step reasoning that references any relevant parts of the context in quotes ("") whenever you use them. Finally, present your final conclusion after "Final answer:".',
     "mcts": 'Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease adopt a multi-phase approach to thoroughly examine the given context, refining your ideas at each stage. Provide the reasoning details step by step. Finally, present your final conclusion after "Final answer:".',
 }
