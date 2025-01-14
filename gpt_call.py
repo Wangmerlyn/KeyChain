@@ -18,32 +18,23 @@ credential = get_bearer_token_provider(
         AzureCliCredential(),
         DefaultAzureCredential(
             exclude_cli_credential=True,
-            # Exclude other credentials we are not interested in.
             exclude_environment_credential=True,
             exclude_shared_token_cache_credential=True,
             exclude_developer_cli_credential=True,
             exclude_powershell_credential=True,
             exclude_interactive_browser_credential=True,
             exclude_visual_studio_code_credentials=True,
-            # DEFAULT_IDENTITY_CLIENT_ID is a variable exposed in
-            # Azure ML Compute jobs that has the client id of the
-            # user-assigned managed identity in it.
-            # See https://learn.microsoft.com/en-us/azure/machine-learning/how-to-identity-based-service-authentication#compute-cluster
-            # In case it is not set the ManagedIdentityCredential will
-            # default to using the system-assigned managed identity, if any.
             managed_identity_client_id=os.environ.get("DEFAULT_IDENTITY_CLIENT_ID"),
         ),
     ),
     scope,
 )
 
-api_version = "2024-10-21"  # Ensure this is a valid API version see: https://learn.microsoft.com/en-us/azure/ai-services/openai/api-version-deprecation#latest-ga-api-release
-model_name = "gpt-4o"  # Ensure this is a valid model name
-model_version = "2024-11-20"  # Ensure this is a valid model version
-deployment_name = re.sub(
-    r"[^a-zA-Z0-9-_]", "", f"{model_name}_{model_version}"
-)  # If your Endpoint doesn't have harmonized deployment names, you can use the deployment name directly: see: https://aka.ms/trapi/models
-instance = "gcr/shared"  # See https://aka.ms/trapi/models for the instance name, remove /openai (library adds it implicitly)
+api_version = "2024-10-21"
+model_name = "gpt-4o"
+model_version = "2024-11-20"
+deployment_name = re.sub(r"[^a-zA-Z0-9-_]", "", f"{model_name}_{model_version}")
+instance = "gcr/shared"
 endpoint = f"https://trapi.research.microsoft.com/{instance}"
 
 client = AzureOpenAI(
@@ -57,12 +48,10 @@ def read_data(file_path):
     """Read question and answer data from a file"""
 
     def read_json_lines(file_path):
-
         with open(file_path, "r", encoding="utf-8") as f:
             return [json.loads(line) for line in f]
 
     def read_json(file_path):
-
         with open(file_path, "r", encoding="utf-8") as f:
             return json.load(f)
 
@@ -74,34 +63,40 @@ def read_data(file_path):
         raise ValueError(f"Unsupported file format: {file_path}")
 
 
-async def call_gpt_api(item, retry_attempts=3):
+async def call_gpt_api(
+    item, prompt_template, num_sequences, temperature, retry_attempts=3
+):
     """Asynchronously call Azure OpenAI API to generate reasoning process for one item"""
     question = item["input"]
     context = item["context"]
     answer = item["answers"][0]
 
-    # Construct chat messages
     messages = [
         {
             "role": "user",
-            "content": f"Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nProvide a detailed reasoning process to arrive at the answer based on the given context.",
+            "content": prompt_template.format(
+                question=question, context=context, answer=answer
+            ),
         }
     ]
 
     for attempt in range(retry_attempts):
         try:
-            # Asynchronous GPT API call using Azure OpenAI client
             response = await asyncio.to_thread(
-                client.chat.completions.create, model=deployment_name, messages=messages
+                client.chat.completions.create,
+                model=deployment_name,
+                messages=messages,
+                n=num_sequences,
+                temperature=temperature,
             )
 
-            reasoning = response.choices[0].message.content.strip()
+            reasonings = [choice.message.content.strip() for choice in response.choices]
             return {
                 "index": item["index"],
                 "input": question,
                 "context": context,
                 "answer": answer,
-                "reasoning": reasoning,
+                "reasonings": reasonings,
             }
 
         except Exception as e:
@@ -116,13 +111,16 @@ async def call_gpt_api(item, retry_attempts=3):
                     "input": question,
                     "context": context,
                     "answer": answer,
-                    "reasoning": "Error: " + str(e),
+                    "reasonings": ["Error: " + str(e)],
                 }
 
 
-async def generate_inference(input_data):
+async def generate_inference(input_data, prompt_template, num_sequences, temperature):
     """Generate reasoning process for all items asynchronously"""
-    tasks = [call_gpt_api(item) for item in input_data]
+    tasks = [
+        call_gpt_api(item, prompt_template, num_sequences, temperature)
+        for item in input_data
+    ]
     results = await asyncio.gather(*tasks)
     return results
 
@@ -139,6 +137,7 @@ def save_results(file_path, results):
     else:
         raise ValueError(f"Unsupported file format: {file_path}")
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Generate reasoning process for question-answer pairs"
@@ -150,27 +149,33 @@ def parse_args():
     parser.add_argument(
         "--prompt_template_type", type=str, default="basic", help="Prompt template type"
     )
+    parser.add_argument(
+        "--num_sequences", type=int, default=1, help="Number of sequences"
+    )
+    parser.add_argument("--temperature", type=float, default=0.0, help="Temperature")
     return parser.parse_args()
+
 
 prompt_template_dict = {
     "basic": "Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nProvide a detailed reasoning process to arrive at the answer based on the given context.",
-    "normal": "Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease produce a clear and logically sound explanation that shows how the answer is derived from the context. Finally, present your final conclusion after \"Final answer:\".",
-    "cot": " Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease produce a step-by-step reasoning that uncovers the path from the context to the final answer. Clearly demonstrate each inference or sub-action in your explanation. Finally, present your final conclusion after \"Final answer:\"",
-    "cot-cite": "Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease produce a structured, step-by-step reasoning that references any relevant parts of the context in quotes ("") whenever you use them. Finally, present your final conclusion after \"Final answer:\".",
-    "mcts": "Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease adopt a multi-phase approach to thoroughly examine the given context, refining your ideas at each stage. Provide the reasoning details step by step. Finally, present your final conclusion after \"Final answer:\".",
+    "normal": 'Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease produce a clear and logically sound explanation that shows how the answer is derived from the context. Finally, present your final conclusion after "Final answer:".',
+    "cot": 'Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease produce a step-by-step reasoning that uncovers the path from the context to the final answer. Clearly demonstrate each inference or sub-action in your explanation. Finally, present your final conclusion after "Final answer:"',
+    "cot-cite": 'Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease produce a structured, step-by-step reasoning that references any relevant parts of the context in quotes ("") whenever you use them. Finally, present your final conclusion after "Final answer:".',
+    "mcts": 'Question: {question}\n\nContext: {context}\n\nAnswer: {answer}\n\nYour task:\nPlease adopt a multi-phase approach to thoroughly examine the given context, refining your ideas at each stage. Provide the reasoning details step by step. Finally, present your final conclusion after "Final answer:".',
 }
 
 if __name__ == "__main__":
-    # Read input data
     args = parse_args()
     input_file = args.input_file
     output_file = args.output_file
     prompt_template = prompt_template_dict[args.prompt_template_type]
+    num_sequences = args.num_sequences
+    temperature = args.temperature
     input_data = read_data(input_file)
 
-    # Generate reasoning process asynchronously
-    results = asyncio.run(generate_inference(input_data))
+    results = asyncio.run(
+        generate_inference(input_data, prompt_template, num_sequences, temperature)
+    )
 
-    # Save results
     save_results(output_file, results)
     print(f"Reasoning results saved to {output_file}")
