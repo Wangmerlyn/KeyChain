@@ -4,6 +4,7 @@ import asyncio
 import re
 import os
 
+
 from openai import AzureOpenAI
 from azure.identity import (
     DefaultAzureCredential,
@@ -11,6 +12,7 @@ from azure.identity import (
     AzureCliCredential,
     get_bearer_token_provider,
 )
+from tqdm.asyncio import tqdm
 
 scope = "api://trapi/.default"
 credential = get_bearer_token_provider(
@@ -121,7 +123,12 @@ async def generate_inference(input_data, prompt_template, num_sequences, tempera
         call_gpt_api(item, prompt_template, num_sequences, temperature)
         for item in input_data
     ]
-    results = await asyncio.gather(*tasks)
+    # results = await asyncio.gather(*tasks)
+    results = []
+    for task in tqdm.as_completed(tasks, total=len(tasks)):
+        result = await task
+        results.append(result)
+    return results
     return results
 
 

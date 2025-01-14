@@ -1,17 +1,27 @@
 #!/bin/bash
 
-# Define the dataset choice
-DATASET_CHOICE="hotpotqa"
+# Define the dataset list
+# DATASETS=("hotpotqa" "musique" "2wikimqa")
+DATASETS=("hotpotqa" "2wikimqa")
 
-# Specify the input and output file paths
-INPUT_FILE="${DATASET_CHOICE}/relevant.jsonl"
-OUTPUT_FILE="${DATASET_CHOICE}/relevant_answer.jsonl"
+# Define common parameters
+PROMPT_TEMPLATE_TYPE="cot-cite"
+NUM_SEQUENCES=1
+TEMPERATURE=0.1
 
-# Define the prompt template type
-PROMPT_TEMPLATE_TYPE="basic"
-
-# Execute the Python script with the specified parameters
-python gpt_call.py \
-  --input_file="${INPUT_FILE}" \
-  --output_file="${OUTPUT_FILE}" \
-  --prompt_template_type="${PROMPT_TEMPLATE_TYPE}"
+# Loop through each dataset
+for DATASET_CHOICE in "${DATASETS[@]}"; do
+  # Specify the input and output file paths
+  INPUT_FILE="${DATASET_CHOICE}/relevant-llama-3.1-8B-instruct-10000.jsonl"
+  OUTPUT_FILE="${DATASET_CHOICE}/relevant-llama-3.1-8B-instruct-10000_answer.jsonl"
+  
+  echo "Processing dataset: ${DATASET_CHOICE}"
+  
+  # Execute the Python script with the specified parameters
+  python gpt_call.py \
+    --input_file="${INPUT_FILE}" \
+    --output_file="${OUTPUT_FILE}" \
+    --prompt_template_type="${PROMPT_TEMPLATE_TYPE}" \
+    --num_sequences="${NUM_SEQUENCES}" \
+    --temperature="${TEMPERATURE}"
+done

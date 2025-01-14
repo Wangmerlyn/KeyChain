@@ -3,3 +3,4 @@ pip install transformers==4.44.2
 pip install tenacity
 pip install openai
 pip install azure-identity
+pip install tqdm
