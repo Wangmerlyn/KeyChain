@@ -59,7 +59,7 @@ TOKENIZER_PATH="/mnt/longcontext/models/siyuan/llama3/llama-3.1-8B-instruct"
 TOKENIZER_TYPE="hf"
 MAX_SEQ_LENGTH=131072
 TOKENS_TO_GENERATE=128
-NUM_SAMPLES=100
+NUM_SAMPLES=10000
 TEMPLATE="{context}"
 
 echo "Running Dataset synthesis with dataset: $DATASET"

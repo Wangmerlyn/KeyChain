@@ -101,6 +101,7 @@ def read_hotpotqa(file):
     total_docs = [f"{t}\n{''.join(p)}" for d in data for t, p in d["context"]]
     total_docs = sorted(list(set(total_docs)))
     total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}
+    print("Total number of unique docs:", len(total_docs))
 
     total_qas = []
     for d in data:
@@ -133,7 +134,7 @@ def read_musqiue(file):
     for d in data:
         for p in d["paragraphs"]:
             total_docs.append(f"{p['title']}\n{p['paragraph_text']}")
-    print(len(total_docs))
+    print("Total number of unique docs:", len(total_docs))
     total_docs = sorted(list(set(total_docs)))
     total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}
 
@@ -171,6 +172,7 @@ def read_2wikimqa(file):
     total_docs = [f"{t}\n{''.join(p)}" for d in data for t, p in d["context"]]
     total_docs = sorted(list(set(total_docs)))
     total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}
+    print("Total number of unique docs:", len(total_docs))
 
     total_qas = []
     for d in data:
@@ -270,7 +272,7 @@ def generate_samples(
 
 
 def main():
-    save_file = args.save_dir / f"{args.save_name}" / f"{args.subset}.jsonl"
+    save_file = args.save_dir / f"{args.save_name}" / f"{args.subset}-{os.path.basename(args.tokenizer_path)}-{args.num_samples}.jsonl"
     save_file.parent.mkdir(parents=True, exist_ok=True)
 
     write_jsons = generate_samples(
