@@ -281,7 +281,7 @@ def generate_samples(
 
 
 def main():
-    save_file = args.save_dir / f"{args.save_name}" / f"{args.subset}.jsonl"
+    save_file = args.save_dir / f"{args.save_name}" / f"{args.subset}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
     save_file.parent.mkdir(parents=True, exist_ok=True)
 
     write_jsons = generate_samples(
