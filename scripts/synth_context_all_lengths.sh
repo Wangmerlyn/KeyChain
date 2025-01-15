@@ -36,12 +36,13 @@ fi
 SAVE_DIR="./"
 TOKENIZER_PATH="/mnt/longcontext/models/siyuan/llama3/llama-3.1-8B-instruct"
 TOKENIZER_TYPE="hf"
-# MAX_SEQ_LENGTH=131072
 TOKENS_TO_GENERATE=128
-NUM_SAMPLES=100
+NUM_SAMPLES=10000
 TEMPLATE="{context}"
 
-for DATASET_CHOICE in "${DATASETS[@]}"; do
+# Function to process each dataset
+process_dataset() {
+    DATASET_CHOICE=$1
     case "$DATASET_CHOICE" in
         "hotpotqa")
             SAVE_NAME="hotpotqa"
@@ -56,9 +57,8 @@ for DATASET_CHOICE in "${DATASETS[@]}"; do
             DATASET="2wikimqa/train.json"
             ;;
         *)
-            # Handle invalid dataset selection
             echo "Invalid DATASET_CHOICE. Skipping..."
-            continue
+            return
             ;;
     esac
 
@@ -77,4 +77,14 @@ for DATASET_CHOICE in "${DATASETS[@]}"; do
             --template="${TEMPLATE}" \
             --dataset=${DATASET}
     done
+}
+
+# Launch each dataset's processing in parallel
+for DATASET_CHOICE in "${DATASETS[@]}"; do
+    process_dataset "$DATASET_CHOICE" &
 done
+
+# Wait for all parallel processes to finish
+wait
+
+echo "All datasets processed."
