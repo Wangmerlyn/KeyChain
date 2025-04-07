@@ -5,7 +5,7 @@ DOWNLOAD_MUSIQUE=false
 DOWNLOAD_2WIKIMQA=false
 
 # Dataset and save name selection
-DATASETS=("hotpotqa" "musique" "2wikimqa")  # Options: "hotpotqa", "musique", "2wikimqa"
+DATASETS=("musique")  # Options: "hotpotqa", "musique", "2wikimqa"
 MAX_SEQ_LENGTHS=(4096 8192 16384 32768 65536 131072)
 
 # Dataset download section
@@ -37,7 +37,7 @@ SAVE_DIR="./"
 TOKENIZER_PATH="/mnt/longcontext/models/siyuan/llama3/llama-3.1-8B-instruct"
 TOKENIZER_TYPE="hf"
 TOKENS_TO_GENERATE=128
-NUM_SAMPLES=10000
+NUM_SAMPLES=5000
 TEMPLATE="{context}"
 
 # Function to process each combination of dataset and max_seq_length
@@ -67,7 +67,7 @@ process_combination() {
     echo "Running Dataset synthesis with dataset: $DATASET and max_seq_length: $MAX_SEQ_LENGTH"
 
     # Execute the Python script with the specified parameters
-    python qa.py \
+    python qa_musique_hard.py \
         --save_dir=${SAVE_DIR} \
         --save_name=${SAVE_NAME} \
         --tokenizer_path=${TOKENIZER_PATH} \
@@ -76,7 +76,8 @@ process_combination() {
         --tokens_to_generate=${TOKENS_TO_GENERATE} \
         --num_samples=${NUM_SAMPLES} \
         --template="${TEMPLATE}" \
-        --dataset=${DATASET}
+        --dataset=${DATASET} \
+        --subset "hard"
 }
 
 # Launch each combination in parallel
