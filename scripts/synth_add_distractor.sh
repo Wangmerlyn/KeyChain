@@ -5,10 +5,10 @@ DOWNLOAD_MUSIQUE=false
 DOWNLOAD_2WIKIMQA=false
 
 # Dataset and save name selection
-# DATASETS=("hotpotqa" "musique" "2wikimqa")  # Options: "hotpotqa", "musique", "2wikimqa"
-DATASETS=("hotpotqa")
-# MAX_SEQ_LENGTHS=(4096 8192 16384 32768 65536 131072)
-MAX_SEQ_LENGTHS=(4096)
+DATASETS=("hotpotqa" "musique" "2wikimqa")  # Options: "hotpotqa", "musique", "2wikimqa"
+# DATASETS=("hotpotqa")
+MAX_SEQ_LENGTHS=(4096 8192 16384 32768 65536 131072)
+# MAX_SEQ_LENGTHS=(4096)
 
 # Dataset download section
 if [ "$DOWNLOAD_HOTPOTQA" = true ]; then

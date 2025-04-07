@@ -173,7 +173,6 @@ DOCUMENT_PROMPT = "Passage {i}:\n{document}"
 if "hotpot" in args.dataset:
     QAS, DOCS = read_hotpotqa(args.dataset)
 elif "musique" in args.dataset:
-    print("Reading MusiqueQA dataset")
     QAS, DOCS = read_musqiue(args.dataset)
 elif "2wikimqa" in args.dataset:
     QAS, DOCS = read_2wikimqa(args.dataset)
@@ -308,7 +307,6 @@ def main():
         "num_chains": args.max_seq_length // 1024, # number of chains to generate, this should be a small number
         "num_uuids": 4,
     }
-    print(chain_distractor_config)
     import uuid_test
     for item in write_jsons:
         if distractor_type == "chain":
@@ -328,7 +326,6 @@ def main():
                     chain_head_with_question = chain[0]
                     insert_input = False
                 else:
-                    print(len(item['distract_questions']))
                     chain_string_list.append(
                         uuid_test.generate_uuid_string_from_chain(
                             uuids=chain,
