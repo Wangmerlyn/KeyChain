@@ -133,16 +133,18 @@ def generate_uuid_string_from_tree(uuid_tree, question="question"):
 
 
 
-chain = generate_uuid_chain(num_uuids=4)
-print("Generated UUID Chain:")
-print(chain)
-print("String representation of UUID chain:")
-print(generate_uuid_string_from_chain(chain, end_with="Given question"))
+if __name__ == "__main__":
+    # Example usage of the functions
+    chain = generate_uuid_chain(num_uuids=4)
+    print("Generated UUID Chain:")
+    print(chain)
+    print("String representation of UUID chain:")
+    print(generate_uuid_string_from_chain(chain, end_with="Given question"))
 
-tree = generate_uuid_tree(num_levels=4, num_children=2)
-print("\nGenerated UUID Tree:")
-print(tree)
-print("String representation of UUID tree:")
-print(generate_uuid_string_from_tree(tree, question="Given question"))
-print(len(tree))  # Check the number of UUIDs in the tree
-print(f"Total uuid relationships in the tree: {len(generate_uuid_string_from_tree(tree, question='Given question'))}")
+    tree = generate_uuid_tree(num_levels=4, num_children=2)
+    print("\nGenerated UUID Tree:")
+    print(tree)
+    print("String representation of UUID tree:")
+    print(generate_uuid_string_from_tree(tree, question="Given question"))
+    print(len(tree))  # Check the number of UUIDs in the tree
+    print(f"Total uuid relationships in the tree: {len(generate_uuid_string_from_tree(tree, question='Given question'))}")
