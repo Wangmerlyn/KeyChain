@@ -16,6 +16,8 @@ fi
 if [ "$DOWNLOAD_MUSIQUE" = true ]; then
     echo "Downloading Musique dataset..."
     pip install -q gdown
+    export PATH="$HOME/.local/bin:$PATH"
+    source ~/.bashrc
     ZIP_NAME="musique_v1.0.zip"
     # Use gdown to download the dataset from Google Drive
     gdown --id 1tGdADlNjWFaHLeZZGShh2IRcpO6Lv24h --output $ZIP_NAME
