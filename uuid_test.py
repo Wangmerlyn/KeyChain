@@ -77,9 +77,72 @@ def generate_uuid_string_from_chain(uuids, end_with="uuid"):
     return result_list
 
 
+def generate_uuid_string_from_tree(uuid_tree, question="question"):
+    """
+    Generate a string representation of a tree of UUIDs from a complete binary tree.
+    The tree is represented as a list where the node at index i has children at
+    indices 2i + 1 and 2i + 2.
+
+    Args:
+    - uuid_tree (list): A list representing the complete binary tree of UUIDs.
+    - question (str): The value to be assigned to one of the leaf nodes' successor.
+
+    Returns:
+    - list of strings: A list of strings representing parent-child relationships.
+    """
+    result_list = []
+    
+    # Helper function to generate parent-child relationships recursively
+    def generate_parent_child_relation(index):
+        if index >= len(uuid_tree):
+            return
+        # Get the left and right children indices
+        left_index = 2 * index + 1
+        right_index = 2 * index + 2
+
+        # If the left child exists, add the relationship
+        if left_index < len(uuid_tree):
+            result_list.append(f'{{"{uuid_tree[index]}": "{uuid_tree[left_index]}"}}')
+
+        # If the right child exists, add the relationship
+        if right_index < len(uuid_tree):
+            result_list.append(f'{{"{uuid_tree[index]}": "{uuid_tree[right_index]}"}}')
+
+        # Recursively call for left and right children
+        generate_parent_child_relation(left_index)
+        generate_parent_child_relation(right_index)
+
+    # Start the recursion from the root node (index 0)
+    generate_parent_child_relation(0)
+
+    # Identify the leaf nodes in the tree (they start from index len(uuid_tree)//2)
+    leaf_nodes_start_index = len(uuid_tree) // 2
+    leaf_nodes = uuid_tree[leaf_nodes_start_index:]
+
+    # Randomly choose one leaf node to have the `question` as the successor
+    chosen_leaf = random.choice(leaf_nodes)
+    
+    # Generate the relationships for the leaf nodes
+    for leaf in leaf_nodes:
+        if leaf == chosen_leaf:
+            result_list.append(f'{{"{leaf}": "{question}"}}')
+        else:
+            result_list.append(f'{{"{leaf}": "{generate_uuid()}"}}')
+
+    return result_list
+
+
 
 chain = generate_uuid_chain(num_uuids=4)
 print("Generated UUID Chain:")
 print(chain)
 print("String representation of UUID chain:")
 print(generate_uuid_string_from_chain(chain, end_with="Given question"))
+
+tree = generate_uuid_tree(num_levels=4, num_children=2)
+print("\nGenerated UUID Tree:")
+print(tree)
+print("String representation of UUID tree:")
+print(generate_uuid_string_from_tree(tree, question="Given question"))
+print(len(tree))  # Check the number of UUIDs in the tree
+print(f"Total uuid relationships in the tree: {len(generate_uuid_string_from_tree(tree, question='Given question'))}")
