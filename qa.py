@@ -290,6 +290,24 @@ def main():
         save_dir=args.save_dir,
     )
 
+    distract_questions=100
+    if distract_questions>=0:
+        for item in write_jsons:
+            # Add distractor questions to the dataset
+            # add one more entry list named distract_questions
+            # sampled from all the questions in the dataset excluding the current question
+            if len(QAS) <= distract_questions:
+                continue
+            distract_qas = random.sample(
+                [q for i, q in enumerate(QAS) if i != item["index"]],
+                min(distract_questions, len(QAS) - 1)
+            )
+            distract_questions_list = []
+            # only keep the questions in the distractors
+            for distract_q in distract_qas:
+                distract_questions_list.append(distract_q["query"])
+            item["distract_questions"] = distract_questions_list
+
     with open(save_file, "w") as f:
         for item in write_jsons:
             f.write(json.dumps(item) + "\n")
