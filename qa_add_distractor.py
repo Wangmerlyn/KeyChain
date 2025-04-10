@@ -173,7 +173,6 @@ DOCUMENT_PROMPT = "Passage {i}:\n{document}"
 if "hotpot" in args.dataset:
     QAS, DOCS = read_hotpotqa(args.dataset)
 elif "musique" in args.dataset:
-    print("Reading MusiqueQA dataset")
     QAS, DOCS = read_musqiue(args.dataset)
 elif "2wikimqa" in args.dataset:
     QAS, DOCS = read_2wikimqa(args.dataset)
@@ -281,16 +280,11 @@ def generate_samples(
 
 
 def main():
-    save_file = args.save_dir / f"{args.save_name}" / f"{args.subset}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
-    save_file.parent.mkdir(parents=True, exist_ok=True)
-
-    write_jsons = generate_samples(
-        num_samples=args.num_samples,
-        max_seq_length=args.max_seq_length,
-        save_dir=args.save_dir,
-    )
-
-    distract_questions=100
+    save_file = args.save_dir / f"{args.save_name}" / f"{args.subset}-{os.path.basename(args.tokenizer_path)}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
+    # read the save file to write_json
+    with open(save_file, 'r') as f:
+        write_jsons = [json.loads(line) for line in f]
+    distract_questions=args.max_seq_length // 1024 * 16 if args.max_seq_length // 1024 > 0 else 16
     if distract_questions>=0:
         for item in write_jsons:
             # Add distractor questions to the dataset
@@ -308,9 +302,92 @@ def main():
                 distract_questions_list.append(distract_q["query"])
             item["distract_questions"] = distract_questions_list
 
-    with open(save_file, "w") as f:
+    distractor_type = "chain"
+    chain_distractor_config = {
+        "num_chains": args.max_seq_length // 1024, # number of chains to generate, this should be a small number
+        "num_uuids": 4,
+    }
+    import uuid_test
+    for item in write_jsons:
+        if distractor_type == "chain":
+            chain_list = [ uuid_test.generate_uuid_chain(chain_distractor_config['num_uuids']) for _ in range(chain_distractor_config["num_chains"])]
+            chain_string_list = []
+            insert_input = True
+            for index, chain in enumerate(chain_list):
+                # Generate a string representation of the chain
+                if insert_input:
+                    chain_string_list.append(
+                        uuid_test.generate_uuid_string_from_chain(
+                            uuids=chain,
+                            end_with=item['input']
+                        )
+                    )
+                    # get the head of the chain with the question
+                    chain_head_with_question = chain[0]
+                    insert_input = False
+                else:
+                    chain_string_list.append(
+                        uuid_test.generate_uuid_string_from_chain(
+                            uuids=chain,
+                            end_with=item['distract_questions'][index]
+                        )
+                    )
+            # Flatten the list of strings
+            flat_chain_string_list = sum(chain_string_list, [])
+            # shuffle the flat list to mix the distractors
+            random.shuffle(flat_chain_string_list)
+            # find all the occurrences of sentence stoppers, i.e., '.' or '?' or '\n' in the context
+            # randomly insert the distractor strings into the context 
+            distractor_inserted_context = insert_distractor_into_context(
+                context=item["context"],
+                distractor_strings=flat_chain_string_list
+            )
+            item['distractor_context'] = distractor_inserted_context
+            item['chain_head_with_question'] = chain_head_with_question
+
+
+    
+    resave_file = args.save_dir / f"{args.save_name}" / f"{args.subset}-{args.save_name}-dis_{distract_questions}-{os.path.basename(args.tokenizer_path)}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
+    with open(resave_file, "w") as f:
         for item in write_jsons:
             f.write(json.dumps(item) + "\n")
+
+def insert_distractor_into_context(context, distractor_strings):
+    """
+    Insert distractor strings into the context at random positions.
+    """
+    if not distractor_strings:
+        return context
+
+    # find all the sentences stoppers in the context
+    sentence_stoppers = [match.start() for match in re.finditer(r'[\n.?\n]', context)]
+    if not sentence_stoppers:
+        raise ValueError("No sentence stoppers found in the context to insert distractors.")
+    if len(sentence_stoppers) < len(distractor_strings):
+        raise ValueError(
+            f"Not enough sentence stoppers in the context to insert all distractors. Found {len(sentence_stoppers)} but need {len(distractor_strings)}."
+        )
+    # insert distractor strings after random sentence stoppers in the context
+    insertion_position = random.sample(
+        range(len(sentence_stoppers)),
+        len(distractor_strings)
+    )
+    insertion_position = [sentence_stoppers[i] for i in insertion_position]
+    assert len(insertion_position) == len(distractor_strings), \
+        f"Mismatch in insertion positions and distractor strings length: {len(insertion_position)} vs {len(distractor_strings)}"
+    distractor_string_tupple_list = [(pos, distractor) for pos, distractor in zip(insertion_position, distractor_strings)]
+    # sort the tupple list by position to insert in order of from big to small
+    distractor_string_tupple_list = sorted(distractor_string_tupple_list, key=lambda x: x[0], reverse=True)
+    distractor_inserted_context = context
+    for pos, distractor in distractor_string_tupple_list:
+        # insert the distractor string after the position of the sentence stopper
+        insertion_extra_char = ' ' if distractor_inserted_context[pos] != '\n' else ''  # ensure readability
+        distractor_inserted_context = (
+            distractor_inserted_context[:pos + 1]  # +1 to include the stopper
+            + f"{insertion_extra_char}{distractor}."  # add space around the distractor for readability
+            + distractor_inserted_context[pos + 1:]
+        )
+    return distractor_inserted_context
 
 
 if __name__ == "__main__":
