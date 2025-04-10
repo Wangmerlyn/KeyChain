@@ -7,6 +7,7 @@ DOWNLOAD_2WIKIMQA=false
 # Dataset and save name selection
 DATASETS=("hotpotqa" "musique" "2wikimqa")  # Options: "hotpotqa", "musique", "2wikimqa"
 # DATASETS=("hotpotqa")
+# DATASETS=("musique")
 MAX_SEQ_LENGTHS=(4096 8192 16384 32768 65536 131072)
 # MAX_SEQ_LENGTHS=(4096)
 

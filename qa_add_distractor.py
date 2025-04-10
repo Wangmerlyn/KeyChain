@@ -302,7 +302,7 @@ def main():
                 distract_questions_list.append(distract_q["query"])
             item["distract_questions"] = distract_questions_list
 
-    distractor_type = "chain"
+    distractor_type = "tree"
     chain_distractor_config = {
         "num_chains": args.max_seq_length // 1024, # number of chains to generate, this should be a small number
         "num_uuids": 4,
@@ -334,8 +334,6 @@ def main():
                     )
             # Flatten the list of strings
             flat_chain_string_list = sum(chain_string_list, [])
-            # shuffle the flat list to mix the distractors
-            random.shuffle(flat_chain_string_list)
             # find all the occurrences of sentence stoppers, i.e., '.' or '?' or '\n' in the context
             # randomly insert the distractor strings into the context 
             distractor_inserted_context = insert_distractor_into_context(
@@ -344,10 +342,36 @@ def main():
             )
             item['distractor_context'] = distractor_inserted_context
             item['chain_head_with_question'] = chain_head_with_question
+        elif distractor_type == "tree":
+            tree_distractor_config = {
+                'num_uuid_levels': 4,
+                'num_trees': args.max_seq_length // 2048,
+            }
+            tree_list = [uuid_test.generate_uuid_tree() for _ in range(tree_distractor_config["num_trees"])]
+            insert_input=True
+            tree_string_list = []
+            for index, tree in enumerate(tree_list):
+                if insert_input:
+                    tree_string = uuid_test.generate_uuid_string_from_tree(tree, item['input'])
+                    insert_input = False
+                    tree_head_with_question = tree[0]
+                else:
+                    tree_string = uuid_test.generate_uuid_string_from_tree(tree, item['distract_questions'][index])
+                # add the tree string to the distractor context
+                tree_string_list.append(tree_string)
+            # Flatten the list of strings
+            flat_tree_string_list = sum(tree_string_list, [])
+            distractor_inserted_context = insert_distractor_into_context(
+                context=item["context"],
+                distractor_strings=flat_tree_string_list
+            )
+            item['distractor_context'] = distractor_inserted_context
+            item['chain_head_with_question'] = tree_head_with_question
 
+        else:
+            raise NotImplementedError(f"{distractor_type} is not implemented.")
 
-    
-    resave_file = args.save_dir / f"{args.save_name}" / f"{args.subset}-{args.save_name}-dis_{distract_questions}-{os.path.basename(args.tokenizer_path)}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
+    resave_file = args.save_dir / f"{args.save_name}" / f"{args.subset}-{args.save_name}-{distractor_type}-dis_{distract_questions}-{os.path.basename(args.tokenizer_path)}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
     with open(resave_file, "w") as f:
         for item in write_jsons:
             f.write(json.dumps(item) + "\n")
@@ -364,10 +388,18 @@ def insert_distractor_into_context(context, distractor_strings):
     if not sentence_stoppers:
         raise ValueError("No sentence stoppers found in the context to insert distractors.")
     if len(sentence_stoppers) < len(distractor_strings):
-        raise ValueError(
-            f"Not enough sentence stoppers in the context to insert all distractors. Found {len(sentence_stoppers)} but need {len(distractor_strings)}."
-        )
+        print(f"Context: {context}")
+        # instead of raising an error, we will just print the context and delete some of the distractors
+        assert len(sentence_stoppers) >= 22, \
+            f"Not enough sentence stoppers in the context to insert key information. Found {len(sentence_stoppers)} but need {len(distractor_strings)}."
+        print(f"Not enough sentence stoppers in the context to insert all distractors. Found {len(sentence_stoppers)} but need {len(distractor_strings)}.\n Deleting some distractors.")
+        distractor_strings = distractor_strings[:len(sentence_stoppers)]
+        # raise ValueError(
+        #     f"Not enough sentence stoppers in the context to insert all distractors. Found {len(sentence_stoppers)} but need {len(distractor_strings)}."
+        # )
     # insert distractor strings after random sentence stoppers in the context
+    # shuffle the distractor strings
+    random.shuffle(distractor_strings)
     insertion_position = random.sample(
         range(len(sentence_stoppers)),
         len(distractor_strings)
