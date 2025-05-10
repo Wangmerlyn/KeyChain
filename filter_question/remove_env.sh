@@ -2,9 +2,9 @@
 
 # dataset_name="2wikimqa"
 note="dist_run"
-dataset_path_prefix="~/filter_question/data"
+dataset_path_prefix="$HOME/filter_question/data"
 install_env=true
-
+tp_size=8
 # Total number of nodes and the current node ID (0-indexed)
 num_total_nodes=9
 curr_node_id=0
@@ -43,6 +43,7 @@ sas="sp=racwdl&st=2025-05-10T18:26:16Z&se=2025-05-17T02:26:16Z&skoid=7b3a9ac3-4e
 cd /scratch
 wget https://azcopyvnext-awgzd8g7aagqhzhe.b02.azurefd.net/releases/release-10.27.1-20241113/azcopy_linux_amd64_10.27.1.tar.gz
 tar -xzf azcopy_linux_amd64_10.27.1.tar.gz
+export PATH=/scratch/azcopy_linux_amd64_10.27.1:$PATH
 echo 'export PATH=/scratch/azcopy_linux_amd64_10.27.1:$PATH' >> ~/.bashrc
 source ~/.bashrc
 
@@ -65,7 +66,6 @@ else
 fi
 
 
-
 cd ~/filter_question
 echo "========================================"
 echo "Current directory: $(pwd)"
@@ -80,7 +80,8 @@ python filter_infer.py \
     --start_idx ${hotpotqa_start_idx} \
     --end_idx ${hotpotqa_end_idx} \
     --dataset_path_prefix ${dataset_path_prefix} \
-    --note ${note}
+    --note ${note} \
+    --tp_size ${tp_size}
 
 output_file_name=hotpotqa_train_merged_pred_${hotpotqa_start_idx}_${hotpotqa_end_idx}_${note}.jsonl
 echo "output_file_name: $output_file_name"
@@ -100,7 +101,9 @@ python filter_infer.py \
     --start_idx ${musique_start_idx} \
     --end_idx ${musique_end_idx} \
     --dataset_path_prefix ${dataset_path_prefix} \
-    --note ${note}
+    --note ${note} \
+    --tp_size ${tp_size}
+
 output_file_name=musique_train_merged_pred_${musique_start_idx}_${musique_end_idx}_${note}.jsonl
 echo "output_file_name: $output_file_name"
 azcopy copy data/$output_file_name "https://sanbpx4p3idss6q.blob.core.windows.net/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data/${output_file_name}?${sas}"
@@ -118,7 +121,9 @@ python filter_infer.py \
     --start_idx ${wikimqa_start_idx} \
     --end_idx ${wikimqa_end_idx} \
     --dataset_path_prefix ${dataset_path_prefix} \
-    --note ${note}
+    --note ${note} \
+    --tp_size ${tp_size}
+
 output_file_name=2wikimqa_train_merged_pred_${wikimqa_start_idx}_${wikimqa_end_idx}_${note}.jsonl
 echo "output_file_name: $output_file_name"
 azcopy copy data/$output_file_name "https://sanbpx4p3idss6q.blob.core.windows.net/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data/${output_file_name}?${sas}"
