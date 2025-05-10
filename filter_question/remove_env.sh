@@ -6,13 +6,14 @@ dataset_path_prefix="$HOME/filter_question/data"
 install_env=true
 tp_size=8
 # Total number of nodes and the current node ID (0-indexed)
-num_total_nodes=9
+num_total_nodes=10
 curr_node_id=0
 
 # Total lengths of each dataset
 hotpotqa_len=90447
 musique_len=19938
 wikimqa_len=167454  # This corresponds to '2wikimqa'
+model_path="Qwen/Qwen2.5-32B-Instruct"
 
 # === Function to compute start_idx and end_idx for a dataset ===
 compute_range() {
@@ -81,7 +82,8 @@ python filter_infer.py \
     --end_idx ${hotpotqa_end_idx} \
     --dataset_path_prefix ${dataset_path_prefix} \
     --note ${note} \
-    --tp_size ${tp_size}
+    --tp_size ${tp_size} \
+    --model_path ${model_path}
 
 output_file_name=hotpotqa_train_merged_pred_${hotpotqa_start_idx}_${hotpotqa_end_idx}_${note}.jsonl
 echo "output_file_name: $output_file_name"
@@ -102,7 +104,8 @@ python filter_infer.py \
     --end_idx ${musique_end_idx} \
     --dataset_path_prefix ${dataset_path_prefix} \
     --note ${note} \
-    --tp_size ${tp_size}
+    --tp_size ${tp_size} \
+    --model_path ${model_path}
 
 output_file_name=musique_train_merged_pred_${musique_start_idx}_${musique_end_idx}_${note}.jsonl
 echo "output_file_name: $output_file_name"
@@ -122,7 +125,8 @@ python filter_infer.py \
     --end_idx ${wikimqa_end_idx} \
     --dataset_path_prefix ${dataset_path_prefix} \
     --note ${note} \
-    --tp_size ${tp_size}
+    --tp_size ${tp_size} \
+    --model_path ${model_path}
 
 output_file_name=2wikimqa_train_merged_pred_${wikimqa_start_idx}_${wikimqa_end_idx}_${note}.jsonl
 echo "output_file_name: $output_file_name"
