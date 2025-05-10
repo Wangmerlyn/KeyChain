@@ -3,7 +3,7 @@
 # dataset_name="2wikimqa"
 note="dist_run"
 dataset_path_prefix="$HOME/filter_question/data"
-install_env=false
+install_env=true
 tp_size=8
 # Total number of nodes and the current node ID (0-indexed)
 num_total_nodes=9
