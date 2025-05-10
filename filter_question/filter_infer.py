@@ -47,11 +47,20 @@ def parse_args():
         help="Optional note or tag for the experiment"
     )
 
+    parser.add_argument("--dataset_path_prefix", type=str, default="/mnt/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data/", help="Path prefix for the dataset")
+
     parser.add_argument(
         "--prompt_template",
         type=str,
         default="The following are given passages.\n{context}\n\nAnswer the question based on the given passages. Please think step by step before answering. After thinking, output the final answer in the format of 'The answer is <your answer here>'\n\nQuestion: {input}",
         help="Prompt template to use for input formatting"
+    )
+
+    parser.add_argument(
+        "--tp_size",
+        type=int,
+        default=4,
+        help="Tensor parallel size"
     )
 
     return parser.parse_args()
@@ -82,9 +91,10 @@ if __name__ == "__main__":
     model_engine = LLM(
         model=model_path,
         gpu_memory_utilization=0.9,
-        tensor_parallel_size=2,
+        tensor_parallel_size=args.tp_size,
     )
-    dataset_path = f"/mnt/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data/{dataset_name}_train_merged.jsonl"
+    # dataset_path = f"/mnt/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data/{dataset_name}_train_merged.jsonl"
+    dataset_path = f"{args.dataset_path_prefix}/{dataset_name}_train_merged.jsonl"
     dataset = load_jsonl(dataset_path)
     end_idx = min(end_idx, len(dataset))
     assert start_idx < end_idx, f"start_idx {start_idx} should be less than end_idx {end_idx}"
