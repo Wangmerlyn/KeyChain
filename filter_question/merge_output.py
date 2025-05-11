@@ -190,5 +190,11 @@ for dataset_name, total_len in dataset_lengths.items():
     print(f"dataset_name: {dataset_name}")
     print(f"cem_stats: {cem_stats}")
     print(f"f1_stats: {f1_stats}")
+    # save the data entries with total_cem_score == 0 or high_f1_count == 0
+    with open(f"{dataset_prefix}/{dataset_name}_train_merged_pred_{note}_0_correct.jsonl", "w") as fout:
+        for entry in merged_dataset:
+            # if entry['total_cem_score'] == 0 and entry['high_f1_count'] == 0:
+            if entry['total_cem_score'] == 0:
+                fout.write(json.dumps(entry) + "\n")
 
     
