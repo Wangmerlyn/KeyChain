@@ -162,3 +162,33 @@ for dataset_name, total_len in dataset_lengths.items():
     #     test_cem_pred_list = cem_score(merged_dataset[0])
     #     test_f1_pred_list = f1_score(merged_dataset[0])
     #     import pdb; pdb.set_trace()
+    # get the average score of each entries' pred_list
+    cem_stats = {}
+    f1_stats = {}
+    for entry in merged_dataset:
+        pred_list = entry['pred_list']
+        avg_cem_score = sum([pred['cem_score'] for pred in pred_list]) / len(pred_list)
+        total_cem_score = sum([pred['cem_score'] for pred in pred_list])
+        avg_f1_score = sum([pred['f1_score'] for pred in pred_list]) / len(pred_list)
+
+        high_f1_count = sum(1 for pred in pred_list if pred['f1_score'] > 0.75)
+
+
+        entry['avg_cem_score'] = avg_cem_score
+        entry['total_cem_score'] = total_cem_score
+        entry['avg_f1_score'] = avg_f1_score
+        entry["high_f1_count"] = high_f1_count
+        # since we have 8 pred in pred_list
+        # count how many pred list have a total cem score in 0,1,2,3,4,5,6,7,8 each
+        if total_cem_score not in cem_stats:
+            cem_stats[total_cem_score] = 0
+        cem_stats[total_cem_score] += 1
+        if high_f1_count not in f1_stats:
+            f1_stats[high_f1_count] = 0
+        f1_stats[high_f1_count] += 1
+        # print(f"avg_cem_score: {avg_cem_score}, total_cem_score: {total_cem_score}, avg_f1_score: {avg_f1_score}, high_f1_count: {high_f1_count}")
+    print(f"dataset_name: {dataset_name}")
+    print(f"cem_stats: {cem_stats}")
+    print(f"f1_stats: {f1_stats}")
+
+    
