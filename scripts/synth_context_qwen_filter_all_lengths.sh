@@ -1,8 +1,8 @@
 #!/bin/bash
 # Toggle variables to control whether to download specific datasets
-DOWNLOAD_HOTPOTQA=true
-DOWNLOAD_MUSIQUE=true
-DOWNLOAD_2WIKIMQA=true
+DOWNLOAD_HOTPOTQA=false
+DOWNLOAD_MUSIQUE=false
+DOWNLOAD_2WIKIMQA=false
 
 # Dataset and save name selection
 DATASETS=("hotpotqa" "musique" "2wikimqa")  # Options: "hotpotqa", "musique", "2wikimqa"
@@ -76,7 +76,8 @@ process_combination() {
         --tokens_to_generate=${TOKENS_TO_GENERATE} \
         --num_samples=${NUM_SAMPLES} \
         --template="${TEMPLATE}" \
-        --dataset=${DATASET}
+        --dataset=${DATASET} \
+        --subset="qwen_filtered"
 }
 
 # Launch each combination in parallel
