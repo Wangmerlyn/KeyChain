@@ -279,9 +279,13 @@ def generate_samples(
     return write_jsons
 
 dataset_dict={
-    "hotpotqa": 19668,
-    "musique": 6988,
-    "2wikimqa": 31585,
+    # "hotpotqa": 19668,
+    # "musique": 6988,
+    # "2wikimqa": 31585,
+
+    "hotpotqa": 24287,
+    "musique": 8517,
+    "2wikimqa": 39679,
 }
 
 def main():
