@@ -66,7 +66,8 @@ process_combination() {
 
     echo "Running Dataset synthesis with dataset: $DATASET and max_seq_length: $MAX_SEQ_LENGTH"
 
-    filter_ids_path="filter_question/data/${SAVE_NAME}_train_merged_pred_dist_run_1_6_correct.jsonl"
+    # filter_ids_path="filter_question/data/${SAVE_NAME}_train_merged_pred_dist_run_1_6_correct.jsonl"
+    filter_ids_path="filter_question/data/${SAVE_NAME}_train_merged_pred_dist_run_1_6_all_0_qwq_srsw.jsonl"
     # assert this file exists
     if [ ! -f "$filter_ids_path" ]; then
         echo "File $filter_ids_path does not exist. Skipping..."

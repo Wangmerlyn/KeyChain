@@ -284,6 +284,8 @@ def generate_samples(
             except:
                 if used_docs > incremental:
                     used_docs -= incremental
+                else:
+                    break
 
         if args.remove_newline_tab:
             input_text = " ".join(
