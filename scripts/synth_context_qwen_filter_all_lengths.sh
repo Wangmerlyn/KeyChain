@@ -66,6 +66,13 @@ process_combination() {
 
     echo "Running Dataset synthesis with dataset: $DATASET and max_seq_length: $MAX_SEQ_LENGTH"
 
+    filter_ids_path="filter_question/data/${SAVE_NAME}_train_merged_pred_dist_run_1_6_correct.jsonl"
+    # assert this file exists
+    if [ ! -f "$filter_ids_path" ]; then
+        echo "File $filter_ids_path does not exist. Skipping..."
+        return
+    fi
+
     # Execute the Python script with the specified parameters
     python qa_filter_data.py \
         --save_dir=${SAVE_DIR} \
@@ -77,7 +84,8 @@ process_combination() {
         --num_samples=${NUM_SAMPLES} \
         --template="${TEMPLATE}" \
         --dataset=${DATASET} \
-        --subset="qwen_filtered"
+        --subset="qwen_filtered" \
+        --filter_ids_path ${filter_ids_path} 
 }
 
 # Launch each combination in parallel
