@@ -278,11 +278,20 @@ def generate_samples(
 
     return write_jsons
 
+dataset_dict={
+    "hotpotqa": 19668,
+    "musique": 6988,
+    "2wikimqa": 31585,
+}
 
 def main():
+    assert args.save_name in dataset_dict, f"Please choose a dataset from {dataset_dict.keys()}"
+    if args.num_samples<0:
+        args.num_samples = dataset_dict[args.save_name]
+    dataset_len = dataset_dict[args.save_name]
+    save_file = args.save_dir / f"{args.save_name}" / f"{args.save_name}_{args.subset}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
+    assert save_file.exists(), f"Please generate the dataset first, {save_file} not found."
     # save_file = args.save_dir / f"{args.save_name}" / f"{args.subset}-{os.path.basename(args.tokenizer_path)}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
-    if args.save_name == "hotpotqa":
-        save_file = args.save_dir / f"{args.save_name}" / f"musique_qwen_filtered-num_sample_19938-max_seq_{args.max_seq_length}.jsonl"
     # read the save file to write_json
     with open(save_file, 'r') as f:
         write_jsons = [json.loads(line) for line in f]
@@ -310,7 +319,8 @@ def main():
         "num_uuids": 4,
     }
     import uuid_test
-    for item in write_jsons:
+    # for item in write_jsons:
+    for item in tqdm(write_jsons):
         if distractor_type == "chain":
             chain_list = [ uuid_test.generate_uuid_chain(chain_distractor_config['num_uuids']) for _ in range(chain_distractor_config["num_chains"])]
             chain_string_list = []
@@ -349,7 +359,7 @@ def main():
 
 
     
-    resave_file = args.save_dir / f"{args.save_name}" / f"{args.subset}-{args.save_name}-dis_{distract_questions}-{os.path.basename(args.tokenizer_path)}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
+    resave_file = args.save_dir / f"{args.save_name}" / f"{args.save_name}_{args.subset}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}-distractor.jsonl"
     with open(resave_file, "w") as f:
         for item in write_jsons:
             f.write(json.dumps(item) + "\n")
