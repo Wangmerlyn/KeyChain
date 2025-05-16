@@ -5,8 +5,8 @@ DOWNLOAD_MUSIQUE=false
 DOWNLOAD_2WIKIMQA=false
 
 # Dataset and save name selection
-DATASETS=("hotpotqa" "musique" "2wikimqa")  # Options: "hotpotqa", "musique", "2wikimqa"
-MAX_SEQ_LENGTHS=(4096 8192 16384 32768 65536)
+DATASETS=("2wikimqa")  # Options: "hotpotqa", "musique", "2wikimqa"
+MAX_SEQ_LENGTHS=(4096)
 
 # Dataset download section
 if [ "$DOWNLOAD_HOTPOTQA" = true ]; then
@@ -66,8 +66,7 @@ process_combination() {
 
     echo "Running Dataset synthesis with dataset: $DATASET and max_seq_length: $MAX_SEQ_LENGTH"
 
-    # filter_ids_path="filter_question/data/${SAVE_NAME}_train_merged_pred_dist_run_1_6_correct.jsonl"
-    filter_ids_path="filter_question/data/${SAVE_NAME}_train_merged_pred_dist_run_1_6_all_0_qwq_srsw.jsonl"
+    filter_ids_path="filter_question/data/${SAVE_NAME}_train_merged_pred_dist_run_1_6_correct.jsonl"
     # assert this file exists
     if [ ! -f "$filter_ids_path" ]; then
         echo "File $filter_ids_path does not exist. Skipping..."

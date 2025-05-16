@@ -6,7 +6,9 @@ DOWNLOAD_2WIKIMQA=false
 
 # Dataset and save name selection
 DATASETS=("hotpotqa" "musique" "2wikimqa")  # Options: "hotpotqa", "musique", "2wikimqa"
-MAX_SEQ_LENGTHS=(4096 8192 16384 32768 65536)
+# DATASETS=("hotpotqa")
+MAX_SEQ_LENGTHS=(4096 8192 16384 32768 65536 131072)
+# MAX_SEQ_LENGTHS=(4096)
 
 # Dataset download section
 if [ "$DOWNLOAD_HOTPOTQA" = true ]; then
@@ -34,7 +36,7 @@ fi
 
 # Set parameters
 SAVE_DIR="./"
-TOKENIZER_PATH="/mnt/longcontext/models/siyuan/llama3/Qwen2.5-7B-Instruct"
+TOKENIZER_PATH="/mnt/longcontext/models/siyuan/llama3/llama-3.1-8B-instruct"
 TOKENIZER_TYPE="hf"
 TOKENS_TO_GENERATE=128
 NUM_SAMPLES=-1
@@ -48,11 +50,11 @@ process_combination() {
     case "$DATASET_CHOICE" in
         "hotpotqa")
             SAVE_NAME="hotpotqa"
-            DATASET="hotpot_train_v1.1.json"
+            DATASET="hotpotqa/hotpot_train_v1.1.json"
             ;;
         "musique")
             SAVE_NAME="musique"
-            DATASET="data/musique_full_v1.0_train.jsonl"
+            DATASET="musique/musique_full_v1.0_train.jsonl"
             ;;
         "2wikimqa")
             SAVE_NAME="2wikimqa"
@@ -66,16 +68,8 @@ process_combination() {
 
     echo "Running Dataset synthesis with dataset: $DATASET and max_seq_length: $MAX_SEQ_LENGTH"
 
-    # filter_ids_path="filter_question/data/${SAVE_NAME}_train_merged_pred_dist_run_1_6_correct.jsonl"
-    filter_ids_path="filter_question/data/${SAVE_NAME}_train_merged_pred_dist_run_1_6_all_0_qwq_srsw.jsonl"
-    # assert this file exists
-    if [ ! -f "$filter_ids_path" ]; then
-        echo "File $filter_ids_path does not exist. Skipping..."
-        return
-    fi
-
     # Execute the Python script with the specified parameters
-    python qa_filter_data.py \
+    python qa_qwen_filtered_add_distractor.py \
         --save_dir=${SAVE_DIR} \
         --save_name=${SAVE_NAME} \
         --tokenizer_path=${TOKENIZER_PATH} \
@@ -85,14 +79,14 @@ process_combination() {
         --num_samples=${NUM_SAMPLES} \
         --template="${TEMPLATE}" \
         --dataset=${DATASET} \
-        --subset="qwen_filtered" \
-        --filter_ids_path ${filter_ids_path} 
+        --subset="qwen_filtered"
 }
 
 # Launch each combination in parallel
 for DATASET_CHOICE in "${DATASETS[@]}"; do
     for MAX_SEQ_LENGTH in "${MAX_SEQ_LENGTHS[@]}"; do
         process_combination "$DATASET_CHOICE" "$MAX_SEQ_LENGTH" &
+        # exit 0  
     done
 done
 

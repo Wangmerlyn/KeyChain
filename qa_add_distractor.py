@@ -281,6 +281,15 @@ def generate_samples(
 
 def main():
     save_file = args.save_dir / f"{args.save_name}" / f"{args.subset}-{os.path.basename(args.tokenizer_path)}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
+    dataset_name =""
+    if "hotpotqa" in args.save_dir:
+        dataset_name = "hotpotqa"
+    elif "musique" in args.save_dir:
+        dataset_name = "musique"
+    elif "2wikimqa" in args.save_dir:
+        dataset_name = "2wikimqa"
+    else:
+        raise NotImplementedError(f"{args.save_dir} is not implemented.")
     # read the save file to write_json
     with open(save_file, 'r') as f:
         write_jsons = [json.loads(line) for line in f]
