@@ -1,8 +1,8 @@
 #!/bin/bash
 # Toggle variables to control whether to download specific datasets
-DOWNLOAD_HOTPOTQA=false
-DOWNLOAD_MUSIQUE=false
-DOWNLOAD_2WIKIMQA=false
+DOWNLOAD_HOTPOTQA=true
+DOWNLOAD_MUSIQUE=true
+DOWNLOAD_2WIKIMQA=true
 
 # Dataset and save name selection
 DATASETS=("hotpotqa" "musique" "2wikimqa")  # Options: "hotpotqa", "musique", "2wikimqa"
@@ -14,6 +14,7 @@ MAX_SEQ_LENGTHS=(4096 8192 16384 32768 65536 131072)
 if [ "$DOWNLOAD_HOTPOTQA" = true ]; then
     echo "Downloading HotpotQA dataset..."
     wget -q http://curtis.ml.cmu.edu/datasets/hotpot/hotpot_train_v1.1.json
+    mv hotpot_train_v1.1.json hotpotqa/hotpot_train_v1.1.json
 fi
 
 if [ "$DOWNLOAD_MUSIQUE" = true ]; then
@@ -25,11 +26,13 @@ if [ "$DOWNLOAD_MUSIQUE" = true ]; then
     unzip -q $(basename $ZIP_NAME)  # Unzip the downloaded file
     rm $ZIP_NAME                   # Remove the zip file after extraction
     rm -rf __MACOSX                # Clean up unwanted directories
+    mkdir musique
+    mv data/musique_full_v1.0_train.jsonl musique/musique_full_v1.0_train.jsonl  # Move the dataset to the specified folder
 fi
 
 if [ "$DOWNLOAD_2WIKIMQA" = true ]; then
     echo "Downloading 2WikiMQA dataset..."
-    wget -q -O 2wikimqa.zip https://www.dropbox.com/scl/fi/32t7pv1dyf3o2pp0dl25u/data_ids_april7.zip?rlkey=u868q6h0jojw4djjg7ea65j46&e=1
+    wget -q -O 2wikimqa.zip "https://www.dropbox.com/scl/fi/32t7pv1dyf3o2pp0dl25u/data_ids_april7.zip?rlkey=u868q6h0jojw4djjg7ea65j46&e=1"
     unzip -q 2wikimqa.zip -d 2wikimqa  # Extract the dataset to the specified folder
     rm 2wikimqa.zip                   # Remove the zip file after extraction
 fi
