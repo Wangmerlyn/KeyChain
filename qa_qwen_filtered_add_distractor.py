@@ -319,14 +319,15 @@ def main():
 
     distractor_type = "chain"
     chain_distractor_config = {
-        "num_chains": args.max_seq_length // 1024, # number of chains to generate, this should be a small number
+        "num_chains": 4 * args.max_seq_length // 1024, # number of chains to generate, this should be a small number
         "num_uuids": 4,
+        "format": "default_8",
     }
     import uuid_test
     # for item in write_jsons:
     for item in tqdm(write_jsons):
         if distractor_type == "chain":
-            chain_list = [ uuid_test.generate_uuid_chain(chain_distractor_config['num_uuids']) for _ in range(chain_distractor_config["num_chains"])]
+            chain_list = [ uuid_test.generate_uuid_chain(chain_distractor_config['num_uuids'], format=chain_distractor_config['format']) for _ in range(chain_distractor_config["num_chains"])]
             chain_string_list = []
             insert_input = True
             for index, chain in enumerate(chain_list):
@@ -363,7 +364,7 @@ def main():
 
 
     
-    resave_file = args.save_dir / f"{args.save_name}" / f"{args.save_name}_{args.subset}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}-distractor.jsonl"
+    resave_file = args.save_dir / f"{args.save_name}" / f"{args.save_name}_{args.subset}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}-uuid_len_{chain_distractor_config['format']}-numchain_{chain_distractor_config['num_chains']}-numhop-{chain_distractor_config['num_uuids']}-distractor.jsonl"
     with open(resave_file, "w") as f:
         for item in write_jsons:
             f.write(json.dumps(item) + "\n")
