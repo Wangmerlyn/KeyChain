@@ -10,20 +10,46 @@ np.random.seed(RANDOM_SEED)
 def generate_uuid(format="default"):
     """
     Generate a UUID string.
+
+    Parameters
+    ----------
+    format : str
+        "default"           → full canonical UUID (36-char with hyphens)
+        "default_<n>"       → first <n> hexadecimal characters of a UUID4 (1 ≤ n ≤ 32)
+        "nano" / "nano_<n>" → nanoid of length <n> (default 21 if not specified)
+
+    Returns
+    -------
+    str
+        The generated identifier.
+
+    Raises
+    ------
+    ValueError
+        If the requested format is unsupported or arguments are invalid.
     """
     if format == "default":
         import uuid
-        uuid = uuid.UUID(int=random.getrandbits(128), version=4)
-        return str(uuid)
+        return str(uuid.uuid4())
+    elif format.startswith("default_"):
+        try:
+            num_digits = int(format.split("_", 1)[1])
+        except (IndexError, ValueError):
+            raise ValueError(
+                f"Unsupported format '{format}'. Expected 'default_<int>'."
+            )
+        if not (1 <= num_digits <= 32):
+            raise ValueError("Requested length must be between 1 and 32.")
+        import uuid
+        return uuid.uuid4().hex[:num_digits]
     elif format.startswith("nano"):
-        num_digits=int(format.split("_")[-1]) if "_" in format else 21
-        # Generate a UUID and return a nano-style representation
-        # TODO this is not reproducible, since the random bits generator is os.urandom
+        num_digits = int(format.split("_")[-1]) if "_" in format else 21
         import nanoid
         return nanoid.generate(size=num_digits)
     else:
         raise ValueError(
-            f"Unsupported format '{format}'. Use 'default' for standard UUID or 'nano' for nano-style."
+            f"Unsupported format '{format}'. "
+            "Use 'default', 'default_<int>', or 'nano[_<int>]'"
         )
 
 def generate_uuid_chain(num_uuids=4, format="default"):
@@ -135,7 +161,7 @@ def generate_uuid_string_from_tree(uuid_tree, question="question"):
 
 if __name__ == "__main__":
     # Example usage of the functions
-    chain = generate_uuid_chain(num_uuids=4)
+    chain = generate_uuid_chain(num_uuids=4, format="default_8")
     print("Generated UUID Chain:")
     print(chain)
     print("String representation of UUID chain:")
