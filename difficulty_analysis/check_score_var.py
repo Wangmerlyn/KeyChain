@@ -94,7 +94,10 @@ def main():
         futures = {pool.submit(process_step, s): s for s in range(1, MAX_STEP + 1)}
         for fut in tqdm(as_completed(futures), total=MAX_STEP, desc="Parsing logs"):
             res = fut.result()
-            (records if res else missing).append(res or futures[fut])
+            if res:
+                records.append(res)
+            else:
+                missing.append(futures[fut])
 
     # --- 基础表 ---
     base_rows = []
