@@ -63,12 +63,12 @@ def process_step(step: int):
     longqa_score_dict = {}
     longqa_dis_score_dict = {}
     for txt in by_input_longqa:
-        key = sum(by_input_longqa[txt])
+        key = int(round(sum(by_input_longqa[txt])))
         if key not in longqa_score_dict:
             longqa_score_dict[key] = 0
         longqa_score_dict[key] += 1
     for txt in by_input_dis:
-        key = sum(by_input_dis[txt])
+        key = int(round(sum(by_input_dis[txt])))
         if key not in longqa_dis_score_dict:
             longqa_dis_score_dict[key] = 0
         longqa_dis_score_dict[key] += 1
