@@ -152,8 +152,8 @@ def main():
     def plot_bins(df_bins, title, fname):
         # df_bins: index=step, columns bin_0..bin_16
         df_bins_sorted = df_bins.sort_index()
-        plt.figure()
-        df_bins_sorted.plot.area(figsize=(9, 5), ax=plt.gca())
+        fig, ax = plt.subplots(figsize=(9, 5))
+        df_bins_sorted.plot.area(ax=ax)
         plt.xlabel('Global Step'); plt.ylabel('#Inputs')
         plt.title(title)
         plt.tight_layout()
