@@ -156,7 +156,6 @@ summary_all = []
 for file_path in train_files:
     df = pd.read_parquet(file_path)
     records = df.to_dict(orient="records")
-    records = records[:10]
 
     # 构造输入（这里假设有 "prompt" 字段；请按需调整）
     prompts = [list(r.get("prompt")) for r in records]
