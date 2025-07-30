@@ -147,7 +147,7 @@ train_files = [
 
 train_files += [
     f"{dataset_prefix}/rl_datasets/rl_three/system/musique_qwen_filtered_start_idx5000_end_idx6750_seq16384/train.parquet",
-    f"{dataset_prefix}/rl_datasets/rl_three/system/musique_filtered_distractor_512_start_idx6750_end_idx8500_seq32768/train.parquet",
+    f"{dataset_prefix}/rl_datasets/rl_three/system/musique_filtered_distractor_256_start_idx6750_end_idx8500_seq16384/train.parquet",
 ]
 
 RESULT_DIR = Path("eval_results_420")
@@ -160,11 +160,11 @@ RESULT_DIR.mkdir(parents=True, exist_ok=True)
 tokenizer = AutoTokenizer.from_pretrained(PRETRAINED_MODEL_PATH, trust_remote_code=True)
 model = LLM(
     model=PRETRAINED_MODEL_PATH,
-    max_model_len=40000+4096,
+    max_model_len=32768,
     data_parallel_size=1,
     tensor_parallel_size=4,
     gpu_memory_utilization=0.95,
-    max_num_batched_tokens=65536,
+    max_num_batched_tokens=32768,
 )
 
 sampling_params = SamplingParams(
