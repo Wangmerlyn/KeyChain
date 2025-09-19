@@ -131,7 +131,7 @@ dataset_dict = {
     "2wikimqa": 20798,
 }
 total_nodes = 4
-dataset_prefix = "/home/aiscuser/LongContextDataSynth/filter_question/data"
+dataset_prefix = "filter_question/data"
 
 if __name__ == "__main__":
     for dataset, total_len in dataset_dict.items():

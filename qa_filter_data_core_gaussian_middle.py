@@ -251,11 +251,6 @@ def biased_positions_for_core(num_positions: int,
                               sigma: float = 0.35,
                               clamp: float = 1.0,
                               max_attempt_factor: int = 50):
-    """
-    生成 num_core 个不重复位置（0..num_positions-1），位置集中在中间。
-    - sigma 越小越集中 (0.2~0.4 常用)。
-    - clamp 控制截断范围（标准化后区间 [-clamp, clamp]）。
-    """
     rnd = random.Random(seed)
     chosen = set()
     attempts = 0
@@ -263,17 +258,13 @@ def biased_positions_for_core(num_positions: int,
     if num_positions <= 0 or num_core <= 0:
         return []
 
-    # 中心映射：采样 x ~ N(0, sigma) -> 归一化 [-1,1] -> 索引
     while len(chosen) < num_core and attempts < max_attempts:
         attempts += 1
         x = rnd.gauss(0, sigma)
-        # 截断
         x = max(min(x, clamp), -clamp)
-        # 映射到 [0, num_positions-1]
         pos = int((x + clamp) / (2 * clamp) * (num_positions - 1))
         chosen.add(pos)
 
-    # 如果因冲突不够，补齐随机位置
     while len(chosen) < num_core:
         chosen.add(rnd.randrange(num_positions))
 
@@ -286,10 +277,6 @@ def place_core_gaussian(core_list,
                         total_len: int,
                         sigma: float = 0.35,
                         clamp: float = 1.0):
-    """
-    将 core_list 放入高斯偏中的位置，其余由 filler_list 填充。
-    返回最终文档索引的顺序列表。
-    """
     rnd = random.Random(seed)
     core_list = list(core_list)
     filler_list = list(filler_list)
@@ -316,14 +303,12 @@ def place_core_gaussian(core_list,
     return slots
 
 
-# ========== 集成示例：重写你的 generate_input_output ==========
 def generate_input_output(index, num_docs):
     curr_q = QAS[index]["query"]
     curr_a = QAS[index]["outputs"]
-    curr_docs = QAS[index]["context"]            # 核心文档（索引列表）
+    curr_docs = QAS[index]["context"]           
     curr_more = QAS[index].get("more_context", [])
 
-    # 1. 先构建候选 doc 索引列表（与你原逻辑一致）
     if num_docs < len(DOCS):
         if len(curr_docs) > num_docs:
             all_doc_indices = random.sample(curr_docs, num_docs)
@@ -347,7 +332,6 @@ def generate_input_output(index, num_docs):
     else:
         all_doc_indices = list(range(len(DOCS)))
 
-    # 去重并截断
     seen = set()
     dedup = []
     for i in all_doc_indices:
@@ -359,25 +343,21 @@ def generate_input_output(index, num_docs):
     all_doc_indices = dedup
     total_len = len(all_doc_indices)
 
-    # 2. 拆分 core / filler
     core_set = set(curr_docs)
     core_list = [i for i in all_doc_indices if i in core_set]
     filler_list = [i for i in all_doc_indices if i not in core_set]
 
-    # 3. 使用高斯偏中排布
     arranged_indices = place_core_gaussian(
         core_list=core_list,
         filler_list=filler_list,
         seed=args.random_seed,
         total_len=total_len,
-        sigma=0.30,      # 可调：越小越集中
-        clamp=0.95       # 可调：越小越避免极端两端
+        sigma=0.30,    
+        clamp=0.95      
     )
 
-    # 4. 转成实际文档内容
     all_docs = [DOCS[idx] for idx in arranged_indices]
 
-    # 5. 构建上下文
     context = "\n\n".join(
         [DOCUMENT_PROMPT.format(i=i + 1, document=d)
          for i, d in enumerate(all_docs)]

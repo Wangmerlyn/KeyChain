@@ -25,12 +25,12 @@ def read_2wikimqa(file):
 
     return total_qas
 
-dataset_path = "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/2wikimqa/train.json"
+dataset_path = "2wikimqa/train.json"
 
 if __name__ == "__main__":
     dataset = read_2wikimqa(dataset_path)
     # import pdb; pdb.set_trace()
-    dataset_dir = "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data"
+    dataset_dir = "filter_question/data"
     os.makedirs(dataset_dir, exist_ok=True)
     with open(f"{dataset_dir}/2wikimqa_train_merged.jsonl", "w") as f:
         for d in dataset:

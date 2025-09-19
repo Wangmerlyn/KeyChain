@@ -2,9 +2,7 @@ import os
 import json
 
 jsonl_list = [
-    # "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/2wikimqa/validation-llama-3.1-8B-instruct-num_sample_10000-max_seq_8192.jsonl",
-    # "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/hotpotqa/validation-llama-3.1-8B-instruct-num_sample_10000-max_seq_8192.jsonl",
-    "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/musique/validation-llama-3.1-8B-instruct-num_sample_10000-max_seq_8192.jsonl",
+    "musique/validation-llama-3.1-8B-instruct-num_sample_10000-max_seq_8192.jsonl",
 ]
 # save_dir_name = "longcontext_train_30k"
 save_dir_name = "musique_8k"
@@ -47,7 +45,7 @@ for jsonl in jsonl_list:
 print(len(merged_jsonl))
 
 # save to jsonl
-os.makedirs(f"/mnt/longcontext/models/siyuan/rl_datasets/{save_dir_name}", exist_ok=True)
-with open(f"/mnt/longcontext/models/siyuan/rl_datasets/{save_dir_name}/train.jsonl", "w") as f:
+os.makedirs(f"rl_datasets/{save_dir_name}", exist_ok=True)
+with open(f"rl_datasets/{save_dir_name}/train.jsonl", "w") as f:
     for item in merged_jsonl:
         f.write(json.dumps(item) + "\n")

@@ -34,7 +34,7 @@ fi
 
 # Set parameters
 SAVE_DIR="./"
-TOKENIZER_PATH="/mnt/longcontext/models/siyuan/llama3/Qwen2.5-7B-Instruct"
+TOKENIZER_PATH="Qwen2.5-7B-Instruct"
 TOKENIZER_TYPE="hf"
 TOKENS_TO_GENERATE=128
 NUM_SAMPLES=-1

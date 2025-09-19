@@ -10,9 +10,16 @@ To generate a dataset with only the relevant docs to answer the question, use:
 bash scripts/synth_relevant_only.sh
 ```
 
-To get gpt-4o reasoning steps from training sets:
+To filter datasets for better quality, use:
 ```bash
-bash scripts/synth_gpt_call_reasoning.sh
+bash filter_question/remote_distributed_filter.sh
+```
+> use this on a distributed cluster for efficiency.
+
+To generate a dataset with distractors on the filtered dataset:
+```bash
+bash scripts/synth_qwen_filter_add_distractor.sh
+# for debugging purposes, use synth_qwen_filter_add_distractor_debug.sh 
 ```
 
 ## Dataset Statistics

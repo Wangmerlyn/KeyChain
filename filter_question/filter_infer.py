@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument(
         "--model_path",
         type=str,
-        default="/mnt/longcontext/models/siyuan/llama3/Qwen2.5-32B-Instruct",
+        default="Qwen2.5-32B-Instruct",
         help="Path to the model directory"
     )
 
@@ -47,7 +47,7 @@ def parse_args():
         help="Optional note or tag for the experiment"
     )
 
-    parser.add_argument("--dataset_path_prefix", type=str, default="/mnt/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data/", help="Path prefix for the dataset")
+    parser.add_argument("--dataset_path_prefix", type=str, default="filter_question/data/", help="Path prefix for the dataset")
 
     parser.add_argument(
         "--prompt_template",
@@ -93,7 +93,6 @@ if __name__ == "__main__":
         gpu_memory_utilization=0.9,
         tensor_parallel_size=args.tp_size,
     )
-    # dataset_path = f"/mnt/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data/{dataset_name}_train_merged.jsonl"
     dataset_path = f"{args.dataset_path_prefix}/{dataset_name}_train_merged.jsonl"
     dataset = load_jsonl(dataset_path)
     end_idx = min(end_idx, len(dataset))

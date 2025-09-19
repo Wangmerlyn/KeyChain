@@ -9,7 +9,7 @@ from collections import Counter
 note = "dist_run"
 num_total_nodes = 10
 
-dataset_prefix="/home/aiscuser/LongContextDataSynth/filter_question/data"
+dataset_prefix="filter_question/data"
 
 # Dataset lengths
 dataset_lengths = {

@@ -28,14 +28,14 @@ def read_musqiue(file):
     return total_qas
 
 
-dataset_path = "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/data/musique_full_v1.0_train.jsonl"
+dataset_path = "data/musique_full_v1.0_train.jsonl"
 
 if __name__ == "__main__":
     # read the dataset
     dataset = read_musqiue(dataset_path)
     # import pdb; pdb.set_trace()
     # save dataset to jsonl file
-    dataset_dir = "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data"
+    dataset_dir = "filter_question/data"
     os.makedirs(dataset_dir, exist_ok=True)
     with open(f"{dataset_dir}/musique_train_merged.jsonl", "w") as f:
         for d in dataset:

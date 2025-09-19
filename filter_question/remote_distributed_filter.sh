@@ -13,7 +13,7 @@ curr_node_id=0
 hotpotqa_len=90447
 musique_len=19938
 wikimqa_len=167454  # This corresponds to '2wikimqa'
-model_path="Qwen/Qwen2.5-32B-Instruct"
+model_path="Qwen/Qwen2.5-7B-Instruct"
 
 # === Function to compute start_idx and end_idx for a dataset ===
 compute_range() {
@@ -38,17 +38,14 @@ echo "[musique ] Node $curr_node_id: $musique_start_idx to $musique_end_idx"
 echo "[2wikimqa] Node $curr_node_id: $wikimqa_start_idx to $wikimqa_end_idx"
 
 
-sas="sp=racwdl&st=2025-05-10T18:26:16Z&se=2025-05-17T02:26:16Z&skoid=7b3a9ac3-4eaa-434a-8801-b2b90159bf0b&sktid=72f988bf-86f1-41af-91ab-2d7cd011db47&skt=2025-05-10T18:26:16Z&ske=2025-05-17T02:26:16Z&sks=b&skv=2024-11-04&spr=https&sv=2024-11-04&sr=c&sig=IvptF6%2FBlKQz1ng9jSwtmhYqdhQWZLtasnAfn9iOzmk%3D"
 
-
-cd /scratch
 wget https://azcopyvnext-awgzd8g7aagqhzhe.b02.azurefd.net/releases/release-10.27.1-20241113/azcopy_linux_amd64_10.27.1.tar.gz
 tar -xzf azcopy_linux_amd64_10.27.1.tar.gz
-export PATH=/scratch/azcopy_linux_amd64_10.27.1:$PATH
-echo 'export PATH=/scratch/azcopy_linux_amd64_10.27.1:$PATH' >> ~/.bashrc
+export PATH=azcopy_linux_amd64_10.27.1:$PATH
+echo 'export PATH=azcopy_linux_amd64_10.27.1:$PATH' >> ~/.bashrc
 source ~/.bashrc
 
-azcopy copy --recursive "https://sanbpx4p3idss6q.blob.core.windows.net/longcontext/models/siyuan/test_code/longcontext_syth/filter_question?${sas}" ~
+azcopy copy --recursive $blob_url ~
 
 
 # curl -Lk 'https://code.visualstudio.com/sha/download?build=stable&os=cli-alpine-x64' --output vscode_cli.tar.gz
@@ -87,7 +84,7 @@ python filter_infer.py \
 
 output_file_name=hotpotqa_train_merged_pred_${hotpotqa_start_idx}_${hotpotqa_end_idx}_${note}.jsonl
 echo "output_file_name: $output_file_name"
-azcopy copy data/$output_file_name "https://sanbpx4p3idss6q.blob.core.windows.net/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data/${output_file_name}?${sas}" 
+azcopy copy data/$output_file_name $upload_url
 
 echo "hotpotqa done"
 
@@ -109,7 +106,7 @@ python filter_infer.py \
 
 output_file_name=musique_train_merged_pred_${musique_start_idx}_${musique_end_idx}_${note}.jsonl
 echo "output_file_name: $output_file_name"
-azcopy copy data/$output_file_name "https://sanbpx4p3idss6q.blob.core.windows.net/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data/${output_file_name}?${sas}"
+azcopy copy data/$output_file_name $upload_url
 echo "musique done"
 echo "========================================"
 echo "processing dataset: 2wikimqa"
@@ -130,7 +127,7 @@ python filter_infer.py \
 
 output_file_name=2wikimqa_train_merged_pred_${wikimqa_start_idx}_${wikimqa_end_idx}_${note}.jsonl
 echo "output_file_name: $output_file_name"
-azcopy copy data/$output_file_name "https://sanbpx4p3idss6q.blob.core.windows.net/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data/${output_file_name}?${sas}"
+azcopy copy data/$output_file_name $upload_url
 echo "2wikimqa done"
 echo "========================================"
 echo "All datasets processed successfully!"

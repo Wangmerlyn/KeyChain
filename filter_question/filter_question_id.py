@@ -10,7 +10,7 @@ def load_jsonl(file_path):
     with open(file_path, 'r') as f:
         return [json.loads(line) for line in f]
 
-dataset_prefix = "/home/aiscuser/LongContextDataSynth/filter_question/data"
+dataset_prefix = "filter_question/data"
 
 dataset_dict = {
     "hotpotqa": 11786,
@@ -19,7 +19,6 @@ dataset_dict = {
 }
 
 for dataset_name in dataset_dict:
-    # data entries that qwen32b could not answer and qwq has some answers right and some wrong in 8 sampled solutions.
     qwq_srsw_data_path = os.path.join(dataset_prefix, f"{dataset_name}_all_0_qwq_some_right_some_wrong_filtered_entries.jsonl")
     # see if the file exists
     if not os.path.exists(qwq_srsw_data_path):

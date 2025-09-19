@@ -57,7 +57,7 @@ case "$DATASET_CHOICE" in
 esac
 
 # Model execution parameters
-TOKENIZER_PATH="/mnt/longcontext/models/siyuan/llama3/llama-3.1-8B-instruct"
+TOKENIZER_PATH="llama-3.1-8B-instruct"
 TOKENIZER_TYPE="hf"
 MAX_SEQ_LENGTH=131072
 TOKENS_TO_GENERATE=128

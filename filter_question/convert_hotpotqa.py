@@ -32,8 +32,8 @@ def read_hotpotqa(file):
 
     return total_qas
 
-dataset_path = "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/hotpot_train_v1.1.json"
-dataset_save_dir = "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data"
+dataset_path = "hotpot_train_v1.1.json"
+dataset_save_dir = "filter_question/data"
 
 if __name__ == "__main__":
     dataset = read_hotpotqa(dataset_path)
