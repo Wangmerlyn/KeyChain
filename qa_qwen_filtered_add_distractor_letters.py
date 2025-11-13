@@ -312,9 +312,16 @@ def main():
     if args.num_samples<0:
         args.num_samples = dataset_dict[args.save_name]
     dataset_len = dataset_dict[args.save_name]
-    save_file = args.save_dir / f"{args.save_name}" / f"{args.save_name}_{args.subset}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
-    assert save_file.exists(), f"Please generate the dataset first, {save_file} not found."
-    # save_file = args.save_dir / f"{args.save_name}" / f"{args.subset}-{os.path.basename(args.tokenizer_path)}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl"
+    save_dir = args.save_dir / f"{args.save_name}"
+    candidate_files = [
+        save_dir / f"{args.save_name}_{args.subset}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl",
+        save_dir / f"{args.subset}-{os.path.basename(args.tokenizer_path)}-num_sample_{args.num_samples}-max_seq_{args.max_seq_length}.jsonl",
+    ]
+    save_file = next((path for path in candidate_files if path.exists()), None)
+    assert save_file is not None, (
+        "Please generate the base dataset first. Looked for:\n  "
+        + "\n  ".join(str(path) for path in candidate_files)
+    )
     # read the save file to write_json
     with open(save_file, 'r') as f:
         write_jsons = [json.loads(line) for line in f]
