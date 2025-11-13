@@ -338,9 +338,9 @@ def main():
 
     distractor_type = "chain"
     chain_distractor_config = {
-        "num_chains": 4 * args.max_seq_length // 1024, # number of chains to generate, this should be a small number
+        "num_chains": args.max_seq_length // 1024,  # number of chains to generate
         "num_uuids": 4,
-        "format": "default_8",
+        "format": "letters_32",
     }
     import uuid_test
     identifier_length = parse_identifier_length(
