@@ -3,7 +3,7 @@
 [![ICLR 2026](https://img.shields.io/badge/ICLR-2026%20Oral-blue)](https://arxiv.org/abs/2510.19363)
 [![arXiv](https://img.shields.io/badge/arXiv-2510.19363-b31b1b.svg)](https://arxiv.org/abs/2510.19363)
 [![Paper page](https://huggingface.co/datasets/huggingface/badges/resolve/main/paper-page-sm-dark.svg)](https://huggingface.co/papers/2510.19363)
-<a href="https://huggingface.co/datasets/OldKingMeister/LoongRL-Train-Data"><img src="https://huggingface.co/datasets/huggingface/badges/resolve/main/dataset-on-hf-sm-dark.svg" height="20"></a>
+<a href="https://huggingface.co/datasets/OldKingMeister/LoongRL-Train-Data"><img src="https://huggingface.co/datasets/huggingface/badges/resolve/main/dataset-on-hf-md-dark.svg" height="20"></a>
 
 This repository implements the **KeyChain** data creation pipeline from [LoongRL: Reinforcement Learning for Advanced Reasoning over Long Contexts](https://arxiv.org/abs/2510.19363). KeyChain synthesizes high-quality, verifiable long-context QA training data by embedding questions within long contexts using UUID key-value chain linking and multi-level distractors — designed specifically for reinforcement learning over long contexts with fine-grained difficulty control.
 
