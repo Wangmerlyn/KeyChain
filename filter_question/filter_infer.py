@@ -92,9 +92,8 @@ if __name__ == "__main__":
     dataset_path = f"{args.dataset_path_prefix}/{dataset_name}_train_merged.jsonl"
     dataset = load_jsonl(dataset_path)
     end_idx = min(end_idx, len(dataset))
-    assert start_idx < end_idx, (
-        f"start_idx {start_idx} should be less than end_idx {end_idx}"
-    )
+    if start_idx >= end_idx:
+        raise ValueError(f"start_idx {start_idx} should be less than end_idx {end_idx}")
     dataset = dataset[start_idx:end_idx]
     print(f"Loaded {len(dataset)} records from {dataset_name}_train_merged.jsonl")
     print(f"Start idx: {start_idx}, End idx: {end_idx}")
@@ -111,6 +110,8 @@ if __name__ == "__main__":
         sampling_params=sampling_params,
         add_generation_prompt=True,
     )
+    if len(outputs) != len(dataset):
+        raise RuntimeError(f"Expected {len(dataset)} outputs, got {len(outputs)}")
     for output, d in zip(outputs, dataset):
         # there are multiple text for each input question
         # add the output to the dataset

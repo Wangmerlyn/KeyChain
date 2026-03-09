@@ -211,7 +211,7 @@ for file_path in train_files:
         # 如果你担心显存，可改用分块循环
         for chunk_start in range(0, len(prompts), VLLM_BATCH):
             chunk_prompts = prompts[chunk_start : chunk_start + VLLM_BATCH]
-            chunk_prompts = [list(p) for p in chunk_prompts]
+            chunk_prompts = [{"role": "user", "content": p} for p in chunk_prompts]
             chunk_out = model.chat(
                 messages=chunk_prompts, sampling_params=sampling_params, use_tqdm=True
             )
