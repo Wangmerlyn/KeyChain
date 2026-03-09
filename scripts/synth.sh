@@ -17,13 +17,22 @@ if [ "$DOWNLOAD_MUSIQUE" = true ]; then
     echo "Downloading Musique dataset..."
     pip install -q gdown
     export PATH="$HOME/.local/bin:$PATH"
-    source ~/.bashrc
     ZIP_NAME="musique_v1.0.zip"
     # Use gdown to download the dataset from Google Drive
     gdown --id 1tGdADlNjWFaHLeZZGShh2IRcpO6Lv24h --output $ZIP_NAME
-    unzip -q $(basename $ZIP_NAME)  # Unzip the downloaded file
-    rm $ZIP_NAME                   # Remove the zip file after extraction
-    rm -rf __MACOSX                # Clean up unwanted directories
+    if [ ! -f "$ZIP_NAME" ]; then
+        echo "Error: Failed to download Musique dataset"
+        exit 1
+    fi
+    unzip -q $ZIP_NAME
+    rm $ZIP_NAME
+    rm -rf __MACOSX
+    # Move data to expected location
+    mkdir -p musique
+    if [ -f "data/musique_full_v1.0_train.jsonl" ]; then
+        mv data/musique_full_v1.0_train.jsonl musique/
+        rmdir data 2>/dev/null || true
+    fi
 fi
 
 if [ "$DOWNLOAD_2WIKIMQA" = true ]; then
@@ -43,7 +52,7 @@ case "$DATASET_CHOICE" in
         ;;
     "musique")
         SAVE_NAME="musique"
-        DATASET="data/musique_full_v1.0_train.jsonl"
+        DATASET="musique/musique_full_v1.0_train.jsonl"
         ;;
     "2wikimqa")
         SAVE_NAME="2wikimqa"
@@ -57,7 +66,7 @@ case "$DATASET_CHOICE" in
 esac
 
 # Model execution parameters
-TOKENIZER_PATH="/mnt/longcontext/models/siyuan/llama3/llama-3.1-8B-instruct"
+TOKENIZER_PATH="${TOKENIZER_PATH:-Qwen/Qwen2.5-7B-Instruct}"
 TOKENIZER_TYPE="hf"
 MAX_SEQ_LENGTH=131072
 TOKENS_TO_GENERATE=128

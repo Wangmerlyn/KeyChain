@@ -1,0 +1,28 @@
+# KeyChain Data Synthesis Pipeline - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core dependencies
+transformers>=4.35.0
+tenacity>=8.0.0
+tqdm>=4.65.0
+numpy>=1.24.0
+
+# Tokenization and data processing
+tiktoken>=0.5.0
+datasets>=2.14.0
+
+# API clients
+openai>=1.0.0
+azure-identity>=1.14.0
+
+# Google Drive download
+gdown>=4.7.0
+
+# Optional: For UUID generation with nanoid support
+nanoid>=2.0.0
+
+# Optional: For vLLM inference (filter_question stage)
+# vllm>=0.3.0
+
+# Optional: For pandas processing (filter_again stage)
+# pandas>=2.0.0

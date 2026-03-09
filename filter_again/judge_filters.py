@@ -54,9 +54,8 @@ def build_output_pairs(
     """
     将 parquet 记录 + vLLM 返回结果 组装成判分所需的结构
     """
-    assert len(records) == len(
-        vllm_outputs
-    ), f"#records({len(records)}) != #outputs({len(vllm_outputs)})"
+    if len(records) != len(vllm_outputs):
+        raise ValueError(f"#records({len(records)}) != #outputs({len(vllm_outputs)})")
 
     def extract_pred_list(vllm_request_output) -> List[str]:
         # vLLM 常见结构：outputs 为 List[RequestOutputFragment]
@@ -90,7 +89,7 @@ def build_output_pairs(
 
 
 def evaluate_pairs_with_avg(
-    output_pairs: List[Dict[str, Any]]
+    output_pairs: List[Dict[str, Any]],
 ) -> tuple[float, float, List[Dict[str, Any]]]:
     """
     逐 pair 判分，返回：
@@ -131,24 +130,29 @@ def evaluate_pairs_with_avg(
 # 路径 & 模型配置
 # ------------------------
 
-dataset_prefix = "/mnt/longcontext/models/siyuan"
-PRETRAINED_MODEL_PATH = (
-    "/mnt/longcontext/models/siyuan/rl_ckpts/qwen25_f1s_fix_no_entro_2node_16k_2k_math_filtered_dis_mathqa_256bsz_20ksamples_end-step420"
+import os
+import sys
+
+dataset_prefix = os.environ.get("DATASET_PREFIX", "./data")
+PRETRAINED_MODEL_PATH = os.environ.get(
+    "PRETRAINED_MODEL_PATH", "Qwen/Qwen2.5-7B-Instruct"
 )
 
-train_files = [
-    f"{dataset_prefix}/rl_datasets/rl_three/system/hotpotqa_qwen_filtered_start_idx0_end_idx2500_seq16384/train.parquet",
-    f"{dataset_prefix}/rl_datasets/rl_three/system/hotpotqa_filtered_distractor_256_start_idx2500_end_idx5000_seq16384/train.parquet",
-    f"{dataset_prefix}/rl_datasets/rl_three/system/musique_qwen_filtered_start_idx0_end_idx2500_seq16384/train.parquet",
-    f"{dataset_prefix}/rl_datasets/rl_three/system/musique_filtered_distractor_256_start_idx2500_end_idx5000_seq16384/train.parquet",
-    f"{dataset_prefix}/rl_datasets/rl_three/system/2wikimqa_qwen_filtered_start_idx0_end_idx2500_seq16384/train.parquet",
-    f"{dataset_prefix}/rl_datasets/rl_three/system/2wikimqa_filtered_distractor_256_start_idx2500_end_idx5000_seq16384/train.parquet",
-]
+if not os.environ.get("PRETRAINED_MODEL_PATH"):
+    print(
+        "Warning: PRETRAINED_MODEL_PATH not set. Using default: Qwen/Qwen2.5-7B-Instruct"
+    )
+    print("Set via: export PRETRAINED_MODEL_PATH=/path/to/your/model")
 
-train_files += [
-    f"{dataset_prefix}/rl_datasets/rl_three/system/musique_qwen_filtered_start_idx5000_end_idx6750_seq16384/train.parquet",
-    f"{dataset_prefix}/rl_datasets/rl_three/system/musique_filtered_distractor_256_start_idx6750_end_idx8500_seq16384/train.parquet",
-]
+train_files_env = os.environ.get("TRAIN_FILES", "")
+if train_files_env:
+    train_files = train_files_env.split(":")
+else:
+    train_files = list(Path(dataset_prefix).rglob("*.parquet"))
+    if not train_files:
+        print(f"Error: No parquet files found in {dataset_prefix}")
+        print("Set TRAIN_FILES env var or place parquet files in dataset_prefix")
+        raise SystemExit(1)
 
 RESULT_DIR = Path("eval_results_420")
 RESULT_DIR.mkdir(parents=True, exist_ok=True)
@@ -206,7 +210,7 @@ for file_path in train_files:
         # 如果你担心显存，可改用分块循环
         for chunk_start in range(0, len(prompts), VLLM_BATCH):
             chunk_prompts = prompts[chunk_start : chunk_start + VLLM_BATCH]
-            chunk_prompts = [list(p) for p in chunk_prompts] 
+            chunk_prompts = [[{"role": "user", "content": p}] for p in chunk_prompts]
             chunk_out = model.chat(
                 messages=chunk_prompts, sampling_params=sampling_params, use_tqdm=True
             )
@@ -257,6 +261,7 @@ for s in summary_all:
 # 若需要 keep_gpu 监控 GPU，保留；否则可删除
 try:
     from keep_gpu.cli import main as keep_gpu_main
+
     keep_gpu_main()
 except ImportError:
     pass
