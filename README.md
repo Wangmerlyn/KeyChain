@@ -1,3 +1,5 @@
+<div align="center">
+
 # KeyChain: Key-Sentence-Driven Long-Context Data Synthesis **[ICLR 2026 Oral]**
 
 [![ICLR 2026](https://img.shields.io/badge/ICLR-2026%20Oral-blue)](https://iclr.cc/virtual/2026/oral/10007440)
@@ -5,6 +7,8 @@
 [![Project Page](https://img.shields.io/badge/Project-Page-green)](https://loongrl.github.io)
 [![Paper page](https://huggingface.co/datasets/huggingface/badges/resolve/main/paper-page-sm-dark.svg)](https://huggingface.co/papers/2510.19363)
 <a href="https://huggingface.co/datasets/OldKingMeister/LoongRL-Train-Data"><img src="https://huggingface.co/datasets/huggingface/badges/resolve/main/dataset-on-hf-md-dark.svg" height="20"></a>
+
+</div>
 
 This repository implements the **KeyChain** data creation pipeline from [LoongRL: Reinforcement Learning for Advanced Reasoning over Long Contexts](https://arxiv.org/abs/2510.19363). KeyChain synthesizes high-quality, verifiable long-context QA training data by embedding questions within long contexts using UUID key-value chain linking and multi-level distractors — designed specifically for reinforcement learning over long contexts with fine-grained difficulty control.
 
