@@ -52,7 +52,7 @@ case "$DATASET_CHOICE" in
         ;;
     "musique")
         SAVE_NAME="musique"
-        DATASET="data/musique_full_v1.0_train.jsonl"
+        DATASET="musique/musique_full_v1.0_train.jsonl"
         ;;
     "2wikimqa")
         SAVE_NAME="2wikimqa"
