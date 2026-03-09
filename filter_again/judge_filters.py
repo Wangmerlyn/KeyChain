@@ -54,9 +54,8 @@ def build_output_pairs(
     """
     将 parquet 记录 + vLLM 返回结果 组装成判分所需的结构
     """
-    assert len(records) == len(vllm_outputs), (
-        f"#records({len(records)}) != #outputs({len(vllm_outputs)})"
-    )
+    if len(records) != len(vllm_outputs):
+        raise ValueError(f"#records({len(records)}) != #outputs({len(vllm_outputs)})")
 
     def extract_pred_list(vllm_request_output) -> List[str]:
         # vLLM 常见结构：outputs 为 List[RequestOutputFragment]
@@ -151,9 +150,9 @@ if train_files_env:
 else:
     train_files = list(Path(dataset_prefix).rglob("*.parquet"))
     if not train_files:
-        print(f"Warning: No parquet files found in {dataset_prefix}")
+        print(f"Error: No parquet files found in {dataset_prefix}")
         print("Set TRAIN_FILES env var or place parquet files in dataset_prefix")
-        train_files = []
+        raise SystemExit(1)
 
 RESULT_DIR = Path("eval_results_420")
 RESULT_DIR.mkdir(parents=True, exist_ok=True)
@@ -211,7 +210,7 @@ for file_path in train_files:
         # 如果你担心显存，可改用分块循环
         for chunk_start in range(0, len(prompts), VLLM_BATCH):
             chunk_prompts = prompts[chunk_start : chunk_start + VLLM_BATCH]
-            chunk_prompts = [{"role": "user", "content": p} for p in chunk_prompts]
+            chunk_prompts = [[{"role": "user", "content": p}] for p in chunk_prompts]
             chunk_out = model.chat(
                 messages=chunk_prompts, sampling_params=sampling_params, use_tqdm=True
             )
