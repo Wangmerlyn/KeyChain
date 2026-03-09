@@ -21,13 +21,19 @@ if [ "$DOWNLOAD_MUSIQUE" = true ]; then
     echo "Downloading Musique dataset..."
     pip install -q gdown
     ZIP_NAME="musique_v1.0.zip"
-    # Use gdown to download the dataset from Google Drive
     gdown --id 1tGdADlNjWFaHLeZZGShh2IRcpO6Lv24h --output $ZIP_NAME
-    unzip -q $(basename $ZIP_NAME)  # Unzip the downloaded file
-    rm $ZIP_NAME                   # Remove the zip file after extraction
-    rm -rf __MACOSX                # Clean up unwanted directories
-    mkdir musique
-    mv data/musique_full_v1.0_train.jsonl musique/musique_full_v1.0_train.jsonl  # Move the dataset to the specified folder
+    if [ ! -f "$ZIP_NAME" ]; then
+        echo "Error: Failed to download Musique dataset"
+        exit 1
+    fi
+    unzip -q $ZIP_NAME
+    rm $ZIP_NAME
+    rm -rf __MACOSX
+    mkdir -p musique
+    if [ -f "data/musique_full_v1.0_train.jsonl" ]; then
+        mv data/musique_full_v1.0_train.jsonl musique/
+        rmdir data 2>/dev/null || true
+    fi
 fi
 
 if [ "$DOWNLOAD_2WIKIMQA" = true ]; then
@@ -39,7 +45,7 @@ fi
 
 # Set parameters
 SAVE_DIR="./"
-TOKENIZER_PATH="Qwen/Qwen2.5-7B-Instruct"
+TOKENIZER_PATH="${TOKENIZER_PATH:-Qwen/Qwen2.5-7B-Instruct}"
 TOKENIZER_TYPE="hf"
 TOKENS_TO_GENERATE=128
 NUM_SAMPLES=-1

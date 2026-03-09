@@ -1,30 +1,24 @@
 import json
 import os
+import argparse
+from pathlib import Path
+
 
 # Read Hotpot QA dataset
 def read_hotpotqa(file):
     with open(file) as f:
         data = json.load(f)
 
-    # import pdb; pdb.set_trace()
-
-
-    # total_docs = [f"{t}\n{''.join(p)}" for d in data for t, p in d["context"]]
-
-    # total_docs = sorted(list(set(total_docs)))
-    # total_docs_dict = {c: idx for idx, c in enumerate(total_docs)}
-
     total_qas = []
     for d in data:
-        current_context = [
-            f"{t}\n{''.join(p)}" for t, p in d["context"]
-        ]
+        current_context = [f"{t}\n{''.join(p)}" for t, p in d["context"]]
         total_qas.append(
             {
                 "id": d["_id"],
                 "query": d["question"],
                 "outputs": d["answer"]
-                    if isinstance(d["answer"], list) else [d["answer"]],
+                if isinstance(d["answer"], list)
+                else [d["answer"]],
                 "context": "\n".join(current_context),
                 "level": d["level"],
             }
@@ -32,13 +26,44 @@ def read_hotpotqa(file):
 
     return total_qas
 
-dataset_path = "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/hotpot_train_v1.1.json"
-dataset_save_dir = "/mnt/longcontext/models/siyuan/test_code/longcontext_syth/filter_question/data"
 
-if __name__ == "__main__":
-    dataset = read_hotpotqa(dataset_path)
-    os.makedirs(dataset_save_dir, exist_ok=True)
-    with open(f"{dataset_save_dir}/hotpotqa_train_merged.jsonl", "w") as f:
+def main():
+    parser = argparse.ArgumentParser(
+        description="Convert HotpotQA dataset to merged format"
+    )
+    parser.add_argument(
+        "--dataset_path",
+        type=str,
+        default="hotpotqa/hotpot_train_v1.1.json",
+        help="Path to the HotpotQA training dataset (default: hotpotqa/hotpot_train_v1.1.json)",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default="filter_question/data",
+        help="Directory to save the output (default: filter_question/data)",
+    )
+    args = parser.parse_args()
+
+    # Check if input file exists
+    if not os.path.exists(args.dataset_path):
+        raise FileNotFoundError(
+            f"Dataset not found at {args.dataset_path}. "
+            "Please download HotpotQA dataset first or provide correct path."
+        )
+
+    print(f"Reading dataset from: {args.dataset_path}")
+    dataset = read_hotpotqa(args.dataset_path)
+
+    os.makedirs(args.output_dir, exist_ok=True)
+    output_path = Path(args.output_dir) / "hotpotqa_train_merged.jsonl"
+
+    with open(output_path, "w") as f:
         for d in dataset:
             f.write(json.dumps(d) + "\n")
-    print(f"Saved {len(dataset)} records to {dataset_save_dir}/hotpotqa_train_merged.jsonl")
+
+    print(f"✓ Saved {len(dataset)} records to {output_path}")
+
+
+if __name__ == "__main__":
+    main()
