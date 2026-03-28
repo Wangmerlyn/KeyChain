@@ -53,6 +53,8 @@ parser.add_argument(
 
 # Complexity Configurations
 parser.add_argument("--dataset", type=str, required=True, help="dataset file")
+parser.add_argument("--distract_questions", type=int, default=100,
+                    help="number of distractor questions to add per sample; -1 to disable")
 
 args = parser.parse_args()
 random.seed(args.random_seed)
@@ -290,7 +292,7 @@ def main():
         save_dir=args.save_dir,
     )
 
-    distract_questions=100
+    distract_questions = args.distract_questions
     if distract_questions>=0:
         for item in write_jsons:
             # Add distractor questions to the dataset
