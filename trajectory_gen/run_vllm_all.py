@@ -55,6 +55,14 @@ def parse_args():
     p.add_argument("--output_dir", default="trajectories")
     p.add_argument("--num_samples", type=int, default=1000,
                    help="Samples per file (used to locate input filename)")
+    p.add_argument(
+        "--max_model_len", type=int, default=None,
+        help=(
+            "Override vLLM max_model_len. Defaults to max(lengths) + max_tokens "
+            "so that long-context inputs don't trigger 'exceeds max model len' errors. "
+            "E.g. 32k input + 4096 output = 36864, but model config says 32768 → set 40960."
+        ),
+    )
     return p.parse_args()
 
 
@@ -124,12 +132,19 @@ def main():
     print()
 
     # Load model ONCE
-    print("Loading model...")
+    # max_model_len: auto = max(lengths) + max_tokens to avoid vLLM rejecting
+    # requests where input + output exceeds the model's config value (e.g. 32k
+    # input + 4096 output = 36864 > 32768). Passing a larger value here tells
+    # vLLM to allocate KV cache for that window; quality on the extra tokens is
+    # the model's business, but it won't crash or silently truncate.
+    max_model_len = args.max_model_len or (max(args.lengths) + args.max_tokens)
+    print(f"Loading model... (max_model_len={max_model_len})")
     from vllm import LLM, SamplingParams
     llm = LLM(
         model=args.model,
         tensor_parallel_size=args.tp_size,
         gpu_memory_utilization=0.9,
+        max_model_len=max_model_len,
     )
     sampling_params = SamplingParams(
         temperature=args.temperature,
