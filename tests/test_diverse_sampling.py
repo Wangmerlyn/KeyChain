@@ -78,6 +78,8 @@ def test_shuffle_changes_question_order():
     with tempfile.TemporaryDirectory() as d:
         unshuffled = run_qa(dataset, 4096, 5, pre_samples=0, shuffle_qa=False, save_dir=d, save_name="uns")
         shuffled   = run_qa(dataset, 4096, 5, pre_samples=0, shuffle_qa=True,  save_dir=d, save_name="shf")
-        si_uns = [r["source_index"] for r in unshuffled]
-        si_shf = [r["source_index"] for r in shuffled]
-        assert si_uns != si_shf, "Shuffled and unshuffled produced identical source_index order"
+        # Compare the actual question text: shuffling should reorder QAS so that the
+        # questions at positions 0-4 differ between the two runs.
+        inputs_uns = [r["input"] for r in unshuffled]
+        inputs_shf = [r["input"] for r in shuffled]
+        assert inputs_uns != inputs_shf, "Shuffled and unshuffled produced identical question order"
