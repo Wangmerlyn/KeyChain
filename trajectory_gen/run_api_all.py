@@ -17,7 +17,7 @@ Optional env vars:
     N_ROLLOUTS        generations per sample, default: 1
     TEMPERATURE       default: 0.6
     MAX_TOKENS        default: 8192
-    CONCURRENCY       max simultaneous requests, default: 50
+    CONCURRENCY       max simultaneous requests, default: 20
     INPUT_DIR         default: output
     OUTPUT_DIR        default: trajectories
     NUM_SAMPLES       samples per file, default: 1000
