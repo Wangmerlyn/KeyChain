@@ -119,16 +119,28 @@ def score_response(text: str, gold_answers: list) -> dict:
 
 # ── Async API ─────────────────────────────────────────────────────────────────
 
+MAX_RETRIES = int(os.environ.get("MAX_RETRIES", "5"))
+
 async def call_api(client, semaphore, prompt: str) -> list[str]:
+    """Call API with exponential backoff retry on any error."""
     async with semaphore:
-        resp = await client.chat.completions.create(
-            model=MODEL,
-            messages=[{"role": "user", "content": prompt}],
-            temperature=TEMPERATURE,
-            max_tokens=MAX_TOKENS,
-            n=N_ROLLOUTS,
-        )
-        return [c.message.content for c in resp.choices]
+        for attempt in range(MAX_RETRIES):
+            try:
+                resp = await client.chat.completions.create(
+                    model=MODEL,
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=TEMPERATURE,
+                    max_tokens=MAX_TOKENS,
+                    n=N_ROLLOUTS,
+                )
+                return [c.message.content for c in resp.choices]
+            except Exception as e:
+                if attempt == MAX_RETRIES - 1:
+                    print(f"\n[error] gave up after {MAX_RETRIES} attempts: {e}")
+                    return [""] * N_ROLLOUTS   # empty placeholder, scored as incorrect
+                wait = 2 ** attempt            # 1s, 2s, 4s, 8s, 16s
+                print(f"\n[retry {attempt+1}/{MAX_RETRIES-1}] {type(e).__name__}: {e} — retrying in {wait}s")
+                await asyncio.sleep(wait)
 
 
 # ── Per-file processing ───────────────────────────────────────────────────────
@@ -142,8 +154,9 @@ async def process_file(client, semaphore, input_file: str, model_tag: str):
         for r in records
     ]
 
+    from tqdm.asyncio import tqdm as atqdm
     tasks = [call_api(client, semaphore, p) for p in prompts]
-    all_texts = await asyncio.gather(*tasks)
+    all_texts = await atqdm.gather(*tasks, desc=f"  {Path(input_file).parent.name}@{Path(input_file).stem.split('_')[-1]}", ncols=80)
 
     output_records = []
     for record, texts in zip(records, all_texts):
