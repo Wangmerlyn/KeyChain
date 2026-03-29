@@ -65,9 +65,9 @@ def test_shuffle_produces_non_overlapping_partitions():
     with tempfile.TemporaryDirectory() as d:
         r1 = run_qa(dataset, 4096, 10, pre_samples=0,  shuffle_qa=True, save_dir=d, save_name="out1")
         r2 = run_qa(dataset, 4096, 10, pre_samples=10, shuffle_qa=True, save_dir=d, save_name="out2")
-    idx1 = {r["source_index"] for r in r1}
-    idx2 = {r["source_index"] for r in r2}
-    assert idx1.isdisjoint(idx2), f"Overlapping source_indexes: {idx1 & idx2}"
+        idx1 = {r["source_index"] for r in r1}
+        idx2 = {r["source_index"] for r in r2}
+        assert idx1.isdisjoint(idx2), f"Overlapping source_indexes: {idx1 & idx2}"
 
 
 def test_shuffle_changes_question_order():

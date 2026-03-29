@@ -186,8 +186,10 @@ else:
     raise NotImplementedError(f"{args.dataset} is not implemented.")
 
 # Shuffle QAS for diverse sampling across context lengths.
-# Re-seed explicitly here — the module-level random.seed() on line 60 has
-# already fired; this second call is intentional for reproducibility.
+# Re-seed explicitly here — the module-level random.seed() call (just after
+# args = parser.parse_args()) has already fired by this point; this second
+# call is intentional to ensure reproducible shuffle regardless of what
+# intervening random calls occurred during dataset load.
 if args.shuffle_qa:
     random.seed(args.random_seed)
     random.shuffle(QAS)
