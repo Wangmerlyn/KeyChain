@@ -41,7 +41,7 @@ def test_source_index_present():
         import pytest; pytest.skip("hotpotqa dataset not downloaded")
     with tempfile.TemporaryDirectory() as d:
         records = run_qa(dataset, 4096, 5, save_dir=d)
-    assert all("source_index" in r for r in records), "source_index missing"
+        assert all("source_index" in r for r in records), "source_index missing"
 
 
 def test_source_index_without_shuffle_equals_index():
@@ -49,11 +49,12 @@ def test_source_index_without_shuffle_equals_index():
     dataset = REPO_ROOT / "hotpot_train_v1.1.json"
     if not dataset.exists():
         import pytest; pytest.skip("hotpotqa dataset not downloaded")
+    pre_samples = 10
     with tempfile.TemporaryDirectory() as d:
-        records = run_qa(dataset, 4096, 5, pre_samples=10, save_dir=d)
-    for r in records:
-        assert r["source_index"] == r["index"] + 10, \
-            f"expected source_index={r['index']+10}, got {r['source_index']}"
+        records = run_qa(dataset, 4096, 5, pre_samples=pre_samples, save_dir=d)
+        for r in records:
+            assert r["source_index"] == r["index"] + pre_samples, \
+                f"expected source_index={r['index']+pre_samples}, got {r['source_index']}"
 
 
 def test_shuffle_produces_non_overlapping_partitions():
@@ -77,6 +78,6 @@ def test_shuffle_changes_question_order():
     with tempfile.TemporaryDirectory() as d:
         unshuffled = run_qa(dataset, 4096, 5, pre_samples=0, shuffle_qa=False, save_dir=d, save_name="uns")
         shuffled   = run_qa(dataset, 4096, 5, pre_samples=0, shuffle_qa=True,  save_dir=d, save_name="shf")
-    q_uns = [r["input"] for r in unshuffled]
-    q_shf = [r["input"] for r in shuffled]
-    assert q_uns != q_shf, "Shuffled and unshuffled produced identical question order"
+        si_uns = [r["source_index"] for r in unshuffled]
+        si_shf = [r["source_index"] for r in shuffled]
+        assert si_uns != si_shf, "Shuffled and unshuffled produced identical source_index order"
