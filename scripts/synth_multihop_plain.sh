@@ -40,12 +40,19 @@ TOKENS_TO_GENERATE=128
 NUM_SAMPLES="${NUM_SAMPLES:-1000}"
 SUBSET="train"
 SAVE_DIR="output"
+# Each length gets a non-overlapping slice of shuffled QAS:
+#   4096  → [0,      NUM_SAMPLES)
+#   8192  → [1×NS,   2×NS)
+#   16384 → [2×NS,   3×NS)
+#   32768 → [3×NS,   4×NS)
+#   65536 → [4×NS,   5×NS)
 MAX_SEQ_LENGTHS=(4096 8192 16384 32768 65536)
 
 # ---------- Synthesis function ----------
 run_synthesis() {
     local DATASET_CHOICE=$1
     local MAX_SEQ_LENGTH=$2
+    local PRE_SAMPLES=$3
 
     case "$DATASET_CHOICE" in
         hotpotqa)
@@ -65,7 +72,7 @@ run_synthesis() {
             ;;
     esac
 
-    echo "[synth] $DATASET_CHOICE @ ${MAX_SEQ_LENGTH} tokens"
+    echo "[synth] $DATASET_CHOICE @ ${MAX_SEQ_LENGTH} tokens (pre_samples=${PRE_SAMPLES})"
     python qa.py \
         --save_dir="${SAVE_DIR}" \
         --save_name="${SAVE_NAME}" \
@@ -75,6 +82,8 @@ run_synthesis() {
         --max_seq_length="${MAX_SEQ_LENGTH}" \
         --tokens_to_generate="${TOKENS_TO_GENERATE}" \
         --num_samples="${NUM_SAMPLES}" \
+        --pre_samples="${PRE_SAMPLES}" \
+        --shuffle_qa \
         --distract_questions=-1 \
         --template="{context}" \
         --dataset="${DATASET}"
@@ -83,8 +92,10 @@ run_synthesis() {
 
 # ---------- Launch all 15 jobs in parallel ----------
 for DATASET_CHOICE in hotpotqa musique 2wikimqa; do
-    for MAX_SEQ_LENGTH in "${MAX_SEQ_LENGTHS[@]}"; do
-        run_synthesis "$DATASET_CHOICE" "$MAX_SEQ_LENGTH" &
+    for idx in "${!MAX_SEQ_LENGTHS[@]}"; do
+        MAX_SEQ_LENGTH="${MAX_SEQ_LENGTHS[$idx]}"
+        PRE_SAMPLES=$((idx * NUM_SAMPLES))
+        run_synthesis "$DATASET_CHOICE" "$MAX_SEQ_LENGTH" "$PRE_SAMPLES" &
     done
 done
 
