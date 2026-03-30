@@ -18,7 +18,7 @@ Optional env vars:
     TEMPERATURE       default: 0.6
     MAX_TOKENS        default: 8192
     CONCURRENCY       max simultaneous requests, default: 20
-    INPUT_DIR         default: output
+    INPUT_DIR         default: data/plain_multihop
     OUTPUT_DIR        default: trajectories
     NUM_SAMPLES       samples per file, default: 1000
     LENGTHS           space-separated list, default: "4096 8192 16384 32768"
@@ -48,7 +48,7 @@ N_ROLLOUTS  = int(os.environ.get("N_ROLLOUTS", "1"))
 TEMPERATURE = float(os.environ.get("TEMPERATURE", "0.6"))
 MAX_TOKENS  = int(os.environ.get("MAX_TOKENS", "8192"))
 CONCURRENCY = int(os.environ.get("CONCURRENCY", "20"))
-INPUT_DIR   = os.environ.get("INPUT_DIR", "output")
+INPUT_DIR   = os.environ.get("INPUT_DIR", "data/plain_multihop")
 OUTPUT_DIR  = os.environ.get("OUTPUT_DIR", "trajectories")
 NUM_SAMPLES = int(os.environ.get("NUM_SAMPLES", "1000"))
 LENGTHS     = [int(x) for x in os.environ.get("LENGTHS", "4096 8192 16384 32768").split()]

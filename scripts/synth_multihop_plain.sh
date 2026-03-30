@@ -39,7 +39,7 @@ TOKENIZER_TYPE="hf"
 TOKENS_TO_GENERATE=128
 NUM_SAMPLES="${NUM_SAMPLES:-1000}"
 SUBSET="train"
-SAVE_DIR="output"
+SAVE_DIR="data/plain_multihop"
 # Each length gets a non-overlapping slice of shuffled QAS:
 #   4096  → [0,      NUM_SAMPLES)
 #   8192  → [1×NS,   2×NS)

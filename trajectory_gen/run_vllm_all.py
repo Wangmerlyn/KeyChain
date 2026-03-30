@@ -51,7 +51,7 @@ def parse_args():
         "--datasets", nargs="+", default=DATASETS,
         help="Datasets to process",
     )
-    p.add_argument("--input_dir", default="output")
+    p.add_argument("--input_dir", default="data/plain_multihop")
     p.add_argument("--output_dir", default="trajectories")
     p.add_argument("--num_samples", type=int, default=1000,
                    help="Samples per file (used to locate input filename)")
