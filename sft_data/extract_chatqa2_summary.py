@@ -72,9 +72,18 @@ def to_swift_row(record: dict) -> dict:
     # answer may be a string or list; normalise to string
     if isinstance(answer, list):
         answer = answer[0] if answer else ""
+
+    # The question field ends with "\n\nAssistant:" (ChatQA2 dialogue format).
+    # Strip this suffix so the user message contains only the context + question.
+    question = record["question"]
+    for suffix in ("\n\nAssistant:", "\nAssistant:", "Assistant:"):
+        if question.endswith(suffix):
+            question = question[: -len(suffix)].rstrip()
+            break
+
     return {
         "messages": [
-            {"role": "user", "content": record["question"]},
+            {"role": "user", "content": question},
             {"role": "assistant", "content": answer},
         ],
         "dataset": "chatqa2_summary",
