@@ -59,8 +59,8 @@ def parse_args():
         help="Use streaming mode (default: True, avoids downloading full dataset)",
     )
     p.add_argument(
-        "--min_input_tokens", type=int, default=4000,
-        help="Minimum input token count (default: 4000); filters short/no-context samples",
+        "--min_input_tokens", type=int, default=4096,
+        help="Minimum input token count (default: 4096); filters short/no-context samples",
     )
     p.add_argument(
         "--min_output_tokens", type=int, default=20,
