@@ -283,6 +283,87 @@ python -m pytest trajectory_gen/tests/test_scoring.py -v
 
 ---
 
+## SFT Data (`sft_data/`)
+
+This directory contains tools to prepare SFT training data in ms-swift format and the resulting data files.
+
+### Data Files
+
+| File | Description | Rows |
+|------|-------------|------|
+| `{dataset}/train-...-LoongRL-14b-swift.jsonl` | All 4 trajectories per query from LoongRL-14b rollouts | 4000 / file |
+| `{dataset}/train-...-LoongRL-14b-swift-filtered.jsonl` | Best trajectory per query (sub_em=1, highest f1) | ~800–990 / file |
+| `chatqa2_summary/long_sft_train_summary.jsonl` | Long-context summarization data from ChatQA2 | 5776 |
+
+Datasets: `hotpotqa`, `musique`, `2wikimqa` × lengths: `4096`, `8192`, `16384`, `32768`
+
+### Tools
+
+```
+sft_data/
+├── convert_to_swift.py       # Convert LoongRL-14b trajectory JSONL → ms-swift format
+├── filter_swift.py           # Filter to best trajectory per query (sub_em=1, max f1)
+├── validate_swift.py         # Validate ms-swift format (rule check + AutoPreprocessor)
+├── extract_chatqa2_summary.py # Extract summarization data from ChatQA2-Long-SFT-data
+├── run_convert.sh            # Batch: convert all 12 LoongRL-14b files
+└── run_filter.sh             # Batch: filter all 12 converted files
+```
+
+### ms-swift Format Check
+
+All data files use the ms-swift **messages** format:
+
+```json
+{
+  "messages": [
+    {"role": "user",      "content": "The following are given passages.\n...\n\nQuestion: ..."},
+    {"role": "assistant", "content": "<model response>"}
+  ],
+  "is_correct": 1,
+  "sub_em": 1,
+  "em": 1,
+  "f1": 1.0
+}
+```
+
+**To validate any file before use:**
+
+```bash
+python sft_data/validate_swift.py path/to/file.jsonl
+```
+
+This runs two layers:
+1. **Rule checks** — verifies `messages` field, role/content presence, non-empty content, last role is `assistant`
+2. **AutoPreprocessor dry-run** — passes 100 sample rows through ms-swift 4.x `AutoPreprocessor`; exit code 0 = pass, 1 = fail
+
+Example output:
+```
+Validating: long_sft_train_summary.jsonl
+Layer 1: rule checks...
+  PASS: 5776 rows, no rule errors
+Layer 2: ms-swift AutoPreprocessor...
+  [swift] AutoPreprocessor: OK (100 rows sampled)
+
+✓ long_sft_train_summary.jsonl passed all checks
+```
+
+Use `--full` to run AutoPreprocessor on all rows instead of 100.
+
+### Reproduce
+
+```bash
+# 1. Convert LoongRL-14b trajectories to ms-swift format
+bash sft_data/run_convert.sh
+
+# 2. Filter to best trajectory per query
+bash sft_data/run_filter.sh
+
+# 3. Extract ChatQA2 summarization data
+python sft_data/extract_chatqa2_summary.py
+```
+
+---
+
 ## Repository Structure
 
 ```
@@ -305,6 +386,16 @@ KeyChain/
 │   │   └── gen_trajectories.sh                      # Batch runner for all 15 combos (sequential)
 │   └── tests/
 │       └── test_scoring.py                          # Unit tests for scoring logic (no GPU needed)
+│
+├── ── SFT Data ──────────────────────────────────────────────────────────────
+│
+├── sft_data/
+│   ├── convert_to_swift.py                          # LoongRL-14b trajectories → ms-swift format
+│   ├── filter_swift.py                              # Best trajectory per query (sub_em=1, max f1)
+│   ├── validate_swift.py                            # Format validator (rules + AutoPreprocessor)
+│   ├── extract_chatqa2_summary.py                   # Extract summarization data from ChatQA2
+│   ├── run_convert.sh                               # Batch convert all 12 LoongRL-14b files
+│   └── run_filter.sh                                # Batch filter all 12 converted files
 │
 ├── ── KeyChain Pipeline ─────────────────────────────────────────────────────
 │
