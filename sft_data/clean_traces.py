@@ -45,6 +45,9 @@ def clean_text(text: str) -> str:
     after = after.strip()
     boxed = last_boxed_only_string(after)
     content = remove_boxed(boxed) if boxed is not None else after
+    # strip think_part to remove leading/trailing whitespace, but preserve internal newlines
+    think_part = think_part.strip()
+    # but preserve leading/trailing newline
     return f"<think>{think_part}</think>{content}"
 
 
