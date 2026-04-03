@@ -53,6 +53,11 @@ parser.add_argument(
 
 # Complexity Configurations
 parser.add_argument("--dataset", type=str, required=True, help="dataset file")
+parser.add_argument("--distract_questions", type=int, default=100,
+                    help="number of distractor questions to add per sample; -1 to disable")
+parser.add_argument("--shuffle_qa", action="store_true",
+                    help="Shuffle QAS with random_seed before sampling, enabling "
+                         "non-overlapping partitions via --pre_samples.")
 
 args = parser.parse_args()
 random.seed(args.random_seed)
@@ -180,6 +185,15 @@ elif "2wikimqa" in args.dataset:
 else:
     raise NotImplementedError(f"{args.dataset} is not implemented.")
 
+# Shuffle QAS for diverse sampling across context lengths.
+# Re-seed explicitly here — the module-level random.seed() call (just after
+# args = parser.parse_args()) has already fired by this point; this second
+# call is intentional to ensure reproducible shuffle regardless of what
+# intervening random calls occurred during dataset load.
+if args.shuffle_qa:
+    random.seed(args.random_seed)
+    random.shuffle(QAS)
+
 
 def generate_input_output(index, num_docs):
     curr_q = QAS[index]["query"]
@@ -270,6 +284,7 @@ def generate_samples(
 
         formatted_output = {
             "index": index,
+            "source_index": index + args.pre_samples,  # absolute position in (shuffled) QAS
             "input": question,
             "context": input_text,
             "answers": answer,
@@ -290,7 +305,7 @@ def main():
         save_dir=args.save_dir,
     )
 
-    distract_questions=100
+    distract_questions = args.distract_questions
     if distract_questions>=0:
         for item in write_jsons:
             # Add distractor questions to the dataset
